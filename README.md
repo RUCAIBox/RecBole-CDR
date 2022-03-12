@@ -92,13 +92,13 @@ This requires NVIDIA driver version >= 396.26 (for Linux) or >= 397.44 (for Wind
 ### Install from conda
 
 ```bash
-conda install -c aibox recbole
+conda install -c aibox recbole_cross_domain
 ```
 
 ### Install from pip
 
 ```bash
-pip install recbole
+pip install recbole_cross_domain
 ```
 
 ### Install from source

@@ -87,13 +87,13 @@ RecBole要求torch版本在1.7.0及以上，如果你想在GPU上运行RecBole�
 ### 从Conda安装
 
 ```bash
-conda install -c aibox recbole
+conda install -c aibox recbole_cross_domain
 ```
 
 ### 从pip安装
 
 ```bash
-pip install recbole
+pip install recbole_cross_domain
 ```
 
 ### 从源文件安装

@@ -25,7 +25,7 @@ class TestCrossDomainRecommender(unittest.TestCase):
     def test_cmfrec(self):
         config_dict = {
             'model': 'CMF',
-            'config_files': './recbole/properties/ml-1m2ml-100k.yaml',
+            'config_files': './recbole_cross_domain/properties/ml-1m2ml-100k.yaml',
         }
         quick_test(config_dict)
 

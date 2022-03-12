@@ -1,1 +1,0 @@
-python run_hyper.py  --config_files=./general_yaml/AmazonBook2Mov.yaml --model=CMF

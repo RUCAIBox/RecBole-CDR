@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
-# @Time   : 2020/7/24 15:57
-# @Author : Shanlei Mu
-# @Email  : slmu@ruc.edu.cn
+# @Time   : 2022/3/12 10:14
+# @Author : Zihan Lin
+# @Email  : zhlin@ruc.edu.cn
 # @File   : run_hyper.py
-# UPDATE:
-# @Time   : 2020/8/20 21:17, 2020/8/29
-# @Author : Zihan Lin, Yupeng Hou
-# @Email  : linzihan.super@foxmail.com, houyupeng@ruc.edu.cn
 
 import argparse
 
 from recbole.trainer import HyperTuning
-from recbole.quick_start import objective_function
+from recbole_cross_domain.quick_start import objective_function
 
 
 def main():

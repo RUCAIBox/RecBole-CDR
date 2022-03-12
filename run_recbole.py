@@ -1,23 +1,17 @@
-# @Time   : 2020/7/20
-# @Author : Shanlei Mu
-# @Email  : slmu@ruc.edu.cn
-
-# UPDATE
-# @Time   : 2020/10/3, 2020/10/1
-# @Author : Yupeng Hou, Zihan Lin
-# @Email  : houyupeng@ruc.edu.cn, zhlin@ruc.edu.cn
-
+# @Time   : 2022/3/11
+# @Author : Zihan Lin
+# @Email  : zhlin@ruc.edu.cn
 
 import argparse
 
-from recbole.quick_start import run_recbole
+from recbole_cross_domain.quick_start import run_recbole
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='CMF', help='name of models')
     parser.add_argument('--dataset', '-d', type=str, default='ml-100k', help='name of datasets')
-    parser.add_argument('--config_files', type=str, default='./recbole/properties/ml-1m2ml-100k.yaml', help='config files')
+    parser.add_argument('--config_files', type=str, default='./recbole_cross_domain/properties/ml-1m2ml-100k.yaml', help='config files')
 
     args, _ = parser.parse_known_args()
 

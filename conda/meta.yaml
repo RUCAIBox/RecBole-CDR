@@ -1,5 +1,5 @@
 package:
-  name: recbole
+  name: recbole_cross_domain
   version: 1.0.1
 
 source:
@@ -34,10 +34,10 @@ requirements:
     - tensorboard >=2.5.0
 test:
   imports:
-    - recbole
+    - recbole_cross_domain
 
 about:
-  home: https://recbole.io/
+  home: https://recbole_cross_domain.io/
   license: MIT
   summary: "A unified, comprehensive and efficient recommendation library"
   

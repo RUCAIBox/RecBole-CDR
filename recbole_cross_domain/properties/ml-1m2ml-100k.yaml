@@ -1,0 +1,49 @@
+# dataset config
+gpu_id: 0
+state: INFO
+field_separator: "\t"
+source_domain:
+  dataset: ml-1m
+  data_path: 'dataset/'
+  seq_separator: " "
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  RATING_FIELD: rating
+  NEG_PREFIX: neg_
+  LABEL_FIELD: label
+  load_col:
+    inter: [user_id, item_id, rating]
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
+
+  user_inter_num_interval: "[5,inf)"
+  item_inter_num_interval: "[5,inf)"
+
+target_domain:
+  dataset: ml-100k
+  data_path: 'dataset/'
+  seq_separator: ","
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  LABEL_FIELD: label
+  NEG_PREFIX: neg_
+  load_col:
+    inter: [user_id, item_id, rating]
+  user_inter_num_interval: "[5,inf)"
+  item_inter_num_interval: "[5,inf)"
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
+
+
+# training and evaluation
+epochs: 500
+train_batch_size: 4096
+valid_metric: NDCG@10
+topk: [10]
+eval_batch_size: 4096000
+embedding_size: 64
+metrics: ["Recall", "NDCG", "MRR"]
+
+learning_rate: 1e-3
