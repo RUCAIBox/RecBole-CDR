@@ -3,7 +3,7 @@
 # @Email  : zhlin@ruc.edu.cn
 
 """
-recbole_cdr.data.dataloader.crossdomain_dataloader
+recbole_cdr.data.dataloader
 ################################################
 """
 

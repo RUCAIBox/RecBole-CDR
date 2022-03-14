@@ -11,7 +11,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='CMF', help='name of models')
     parser.add_argument('--dataset', '-d', type=str, default='ml-100k', help='name of datasets')
-    parser.add_argument('--config_files', type=str, default='./recbole_cdr/properties/ml-1m2ml-100k.yaml', help='config files')
+    parser.add_argument('--config_files', type=str, default=None, help='config files')
 
     args, _ = parser.parse_known_args()
 

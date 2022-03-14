@@ -1,3 +1,3 @@
-from recbole_cdr.trainer.crossdomain_trainer import *
+from recbole_cdr.trainer.trainer import *
 
 __all__ = ['CrossDomainTrainer']

@@ -39,7 +39,7 @@ def create_dataset(config):
     else:
         model_type = config['MODEL_TYPE']
         type2class = {
-            ModelType.CROSSDOMAIN: 'CrossDomainDataset',
+            ModelType.CROSSDOMAIN: 'CDRDataset',
         }
         dataset_class = getattr(dataset_module, type2class[model_type])
 

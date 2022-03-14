@@ -25,7 +25,7 @@ class CrossDomainDataLoaderState(Enum):
 
     - ``BOTH``: Return both data in source domain and target domain.
     - ``SOURCE``: Only return the data in source domain.
-    - ``TARGET``: Only return the data in targe domain.
+    - ``TARGET``: Only return the data in target domain.
     """
 
     BOTH = 1

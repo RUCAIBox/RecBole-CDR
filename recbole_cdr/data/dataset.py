@@ -3,7 +3,7 @@
 # @Email  : zhlin@ruc.edu.cn
 
 """
-recbole_cdr.data.crossdomain_dataset
+recbole_cdr.data.dataset
 ##########################
 """
 
@@ -128,7 +128,7 @@ class CrossDomainSingleDataset(Dataset):
             self.logger.debug(set_color('ordering item features by item id.', 'green'))
 
 
-class CrossDomainDataset():
+class CDRDataset():
     """:class:`CrossDomainDataset` is based on :class:`~recbole_cdr.data.dataset.dataset.Dataset`,
     and load both `SourceDataset` and `TargetDataset` additionally.
 

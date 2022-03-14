@@ -13,7 +13,7 @@ from recbole.config.configurator import Config
 from recbole_cdr.utils import get_model
 
 
-class CDConfig(Config):
+class CDRConfig(Config):
     """ Configurator module that load the defined parameters.
 
     Configurator module will first load the default parameters from the fixed properties in RecBole and then

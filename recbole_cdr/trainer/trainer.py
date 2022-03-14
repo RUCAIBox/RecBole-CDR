@@ -4,7 +4,7 @@
 
 
 r"""
-recbole_cdr.trainer.crossdomain_trainer
+recbole_cdr.trainer.trainer
 ################################
 """
 

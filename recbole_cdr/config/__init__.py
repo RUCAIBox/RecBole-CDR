@@ -1,1 +1,1 @@
-from recbole_cdr.config.cd_configurator import CDConfig
+from recbole_cdr.config.configurator import CDRConfig
