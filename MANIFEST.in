@@ -1,2 +1,2 @@
-recursive-include recbole_cross_domain/properties *
-recursive-include recbole_cross_domain/dataset_example *
+recursive-include recbole_cdr/properties *
+recursive-include recbole_cdr/dataset_example *

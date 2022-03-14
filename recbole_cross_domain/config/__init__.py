@@ -1,1 +1,0 @@
-from recbole_cross_domain.config.cd_configurator import CDConfig

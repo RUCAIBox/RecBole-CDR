@@ -1,5 +1,5 @@
 package:
-  name: recbole_cross_domain
+  name: recbole_cdr
   version: 0.1.0
 
 source:
@@ -16,10 +16,10 @@ requirements:
     - numpy >=1.0.0
 test:
   imports:
-    - recbole_cross_domain
+    - recbole_cdr
 
 about:
   home: https://recbole.io/
   license: MIT
-  summary: "An extension library for cross domain recommendation based on Recbole."
+  summary: "An extension library for cross domain recommendation based on RecBole."
   
