@@ -5,7 +5,7 @@
 general_yaml
 docs/
 .vscode/
-dataset/
+
 .idea/
 *.pyc
 *.log
