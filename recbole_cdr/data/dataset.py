@@ -128,7 +128,7 @@ class CrossDomainSingleDataset(Dataset):
             self.logger.debug(set_color('ordering item features by item id.', 'green'))
 
 
-class CDRDataset():
+class CrossDomainDataset():
     """:class:`CrossDomainDataset` is based on :class:`~recbole_cdr.data.dataset.dataset.Dataset`,
     and load both `SourceDataset` and `TargetDataset` additionally.
 
