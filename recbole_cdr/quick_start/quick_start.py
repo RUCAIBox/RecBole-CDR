@@ -78,7 +78,7 @@ def objective_function(config_dict=None, config_file_list=None, saved=True):
         saved (bool, optional): Whether to save the model. Defaults to ``True``.
     """
 
-    config = CDConfig(config_dict=config_dict, config_file_list=config_file_list)
+    config = CDRConfig(config_dict=config_dict, config_file_list=config_file_list)
     init_seed(config['seed'], config['reproducibility'])
     logging.basicConfig(level=logging.ERROR)
     dataset = create_dataset(config)
