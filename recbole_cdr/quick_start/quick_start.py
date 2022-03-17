@@ -12,7 +12,7 @@ import torch
 
 from recbole.utils import init_logger, init_seed, set_color
 
-from recbole_cdr.config import CDConfig
+from recbole_cdr.config import CDRConfig
 from recbole_cdr.data import create_dataset, data_preparation
 from recbole_cdr.utils import get_model, get_trainer
 
@@ -29,7 +29,7 @@ def run_recbole_cdr(model=None, dataset=None, config_file_list=None, config_dict
         saved (bool, optional): Whether to save the model. Defaults to ``True``.
     """
     # configurations initialization
-    config = CDConfig(model=model, dataset=dataset, config_file_list=config_file_list, config_dict=config_dict)
+    config = CDRConfig(model=model, dataset=dataset, config_file_list=config_file_list, config_dict=config_dict)
 
     init_seed(config['seed'], config['reproducibility'])
     # logger initialization
@@ -78,7 +78,7 @@ def objective_function(config_dict=None, config_file_list=None, saved=True):
         saved (bool, optional): Whether to save the model. Defaults to ``True``.
     """
 
-    config = CDConfig(config_dict=config_dict, config_file_list=config_file_list)
+    config = CDRConfig(config_dict=config_dict, config_file_list=config_file_list)
     init_seed(config['seed'], config['reproducibility'])
     logging.basicConfig(level=logging.ERROR)
     dataset = create_dataset(config)

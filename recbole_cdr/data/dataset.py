@@ -3,7 +3,7 @@
 # @Email  : zhlin@ruc.edu.cn
 
 """
-recbole_cdr.data.crossdomain_dataset
+recbole_cdr.data.dataset
 ##########################
 """
 
