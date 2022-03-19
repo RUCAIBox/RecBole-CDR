@@ -262,5 +262,7 @@ class CDRConfig(Config):
         return final_config_dict
 
     def update(self, other_config):
+        new_config_obj = copy.deepcopy(self)
         for key in other_config:
-            self.final_config_dict[key] = other_config[key]
+            new_config_obj.final_config_dict[key] = other_config[key]
+        return new_config_obj
