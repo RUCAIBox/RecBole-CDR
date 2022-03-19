@@ -140,55 +140,6 @@ class CrossDomainDataset():
     - users (or items) that only exist in target dataset.
 
 
-    Attributes:
-        source_dataset_name (str): Name of source dataset.
-
-        target_dataset_name (str): Name of target dataset.
-
-        source_dataset_path (str): Local file path of source dataset.
-
-        target_dataset_path (str): Local file path of target dataset.
-
-        field2type (dict): Dict mapping feature name (str) to its type (:class:`~recbole.utils.enum_type.FeatureType`).
-
-        source_uid_field (str or None): The same as ``config['source_dataset']['USER_ID_FIELD']``.
-
-        source_iid_field (str or None): The same as ``config['source_dataset']['ITEM_ID_FIELD']``.
-
-        source_label_field (str or None): The same as ``config['source_dataset']['LABEL_FIELD']``.
-
-        source_time_field (str or None): The same as ``config['source_dataset']['TIME_FIELD']``.
-
-        source_inter_feat (:class:`Interaction`): Internal data structure stores the interactions in source domain.
-            It's loaded from file ``.inter`` in the `source_dataset_path`.
-
-        source_user_feat (:class:`Interaction` or None): Internal data structure stores the user features in source domain.
-            It's loaded from file ``.user`` in the `source_dataset_path` if existed.
-
-        source_item_feat (:class:`Interaction` or None): Internal data structure stores the item features in source domain.
-            It's loaded from file ``.item`` if existed.
-
-        source_feat_name_list (list): A list contains all the features' name in source domain (:class:`str`).
-
-        target_uid_field (str or None): The same as ``config['target_dataset']['USER_ID_FIELD']``.
-
-        target_iid_field (str or None): The same as ``config['target_dataset']['ITEM_ID_FIELD']``.
-
-        target_label_field (str or None): The same as ``config['target_dataset']['LABEL_FIELD']``.
-
-        target_time_field (str or None): The same as ``config['target_dataset']['TIME_FIELD']``.
-
-        target_inter_feat (:class:`Interaction`): Internal data structure stores the interactions in target domain.
-            It's loaded from file ``.inter`` in the `target_dataset_path`.
-
-        target_user_feat (:class:`Interaction` or None): Internal data structure stores the user features in target domain.
-            It's loaded from file ``.user`` in the `target_dataset_path` if existed.
-
-        target_item_feat (:class:`Interaction` or None): Internal data structure stores the item features in target domain.
-            It's loaded from file ``.item`` if existed.
-
-        target_feat_name_list (list): A list contains all the features' name in target domain (:class:`str`).
-
     """
 
     def __init__(self, config):
@@ -196,12 +147,12 @@ class CrossDomainDataset():
         self.config = config
         self.logger = getLogger()
         self.logger.debug(set_color('Source Domain', 'blue'))
-        config.update(config['source_domain'])
-        self.source_domain_dataset = CrossDomainSingleDataset(config, domain='source')
+        source_config = config.update(config['source_domain'])
+        self.source_domain_dataset = CrossDomainSingleDataset(source_config, domain='source')
 
         self.logger.debug(set_color('Target Domain', 'red'))
-        config.update(config['target_domain'])
-        self.target_domain_dataset = CrossDomainSingleDataset(config, domain='target')
+        target_config = config.update(config['target_domain'])
+        self.target_domain_dataset = CrossDomainSingleDataset(target_config, domain='target')
 
         self.user_link_dict = None
         self.item_link_dict = None
@@ -245,7 +196,6 @@ class CrossDomainDataset():
         self.num_target_only_user = len(target_only_user)
 
         self.num_total_user = self.num_overlap_user + self.num_source_only_user + self.num_target_only_user
-
 
         overlap_user_remap_dict = dict(zip(overlap_user, range(1, self.num_overlap_user)))
         overlap_user_remap_dict['[PAD]'] = 0
@@ -295,15 +245,14 @@ class CrossDomainDataset():
     def _load_data(self, user_link_file_path, item_link_file_path):
 
         if user_link_file_path:
-            self.source_user_field = self.config['SOURCE_USER_ID_FIELD']
-            self.target_user_field = self.config['TARGET_USER_ID_FIELD']
-            self._check_field('source_user_field', 'target_user_field')
+            self.source_user_field = self.source_domain_dataset.uid_field
+            self.target_user_field = self.target_domain_dataset.uid_field
             self.user_link_dict = self._load_link(user_link_file_path, between='user')
+            print(len(self.user_link_dict))
 
         if item_link_file_path:
-            self.source_item_field = self.config['SOURCE_ITEM_ID_FIELD']
-            self.target_item_field = self.config['TARGET_ITEM_ID_FIELD']
-            self._check_field('source_item_field', 'target_item_field')
+            self.source_item_field = self.source_domain_dataset.iid_field
+            self.target_item_field = self.target_domain_dataset.iid_field
             self.item_link_dict = self._load_link(item_link_file_path, between='item')
 
     def __str__(self):
