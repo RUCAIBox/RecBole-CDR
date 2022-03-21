@@ -13,9 +13,11 @@ Reference:
 import torch
 import torch.nn as nn
 
-from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 from recbole.model.init import xavier_normal_initialization
 from recbole.utils import InputType
+from recbole.model.loss import EmbLoss
+
+from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class CMF(CrossDomainRecommender):
@@ -32,6 +34,8 @@ class CMF(CrossDomainRecommender):
         # load parameters info
         self.embedding_size = config['embedding_size']
         self.alpha = config['alpha']
+        self.lamda = config['lambda']
+        self.gamma = config['gamma']
 
         # define layers and loss
         self.user_embedding = nn.Embedding(self.total_num_users, self.embedding_size)
@@ -39,6 +43,8 @@ class CMF(CrossDomainRecommender):
         self.sigmoid = nn.Sigmoid()
         self.loss = nn.BCELoss()
 
+        self.source_reg_loss = EmbLoss()
+        self.target_reg_loss = EmbLoss()
 
         # parameters initialization
         self.apply(xavier_normal_initialization)
@@ -83,8 +89,12 @@ class CMF(CrossDomainRecommender):
         p_source = self.forward(source_user, source_item)
         p_target = self.forward(target_user, target_item)
 
-        loss_s = self.loss(p_source, source_label)
-        loss_t = self.loss(p_target, target_label)
+        loss_s = self.loss(p_source, source_label) + \
+                 self.lamda * self.source_reg_loss(self.get_user_embedding(source_user),
+                                                   self.get_item_embedding(source_item))
+        loss_t = self.loss(p_target, target_label) + \
+                 self.gamma * self.source_reg_loss(self.get_user_embedding(target_user),
+                                                   self.get_item_embedding(target_item))
         return loss_s * self.alpha + loss_t * (1 - self.alpha)
 
     def predict(self, interaction):
