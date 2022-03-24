@@ -191,6 +191,17 @@ class CrossDomainDataset():
         source_only_user = source_user_set - overlap_user
         target_only_user = target_user_set - overlap_user
 
+        overlap_user = list(overlap_user)
+        source_only_user = list(source_only_user)
+        target_only_user = list(target_only_user)
+        while np.nan in source_only_user:
+            source_only_user.remove(np.nan)
+        while np.nan in target_only_user:
+            target_only_user.remove(np.nan)
+        overlap_user.sort()
+        source_only_user.sort()
+        target_only_user.sort()
+
         self.num_overlap_user = len(overlap_user) + 1
         self.num_source_only_user = len(source_only_user)
         self.num_target_only_user = len(target_only_user)
@@ -222,6 +233,18 @@ class CrossDomainDataset():
         overlap_item = source_item_set & target_item_set
         source_only_item = source_item_set - overlap_item
         target_only_item = target_item_set - overlap_item
+
+        overlap_item = list(overlap_item)
+        source_only_item = list(source_only_item)
+        target_only_item = list(target_only_item)
+        while np.nan in source_only_item:
+            source_only_item.remove(np.nan)
+        while np.nan in target_only_item:
+            target_only_item.remove(np.nan)
+
+        overlap_item.sort()
+        source_only_item.sort()
+        target_only_item.sort()
 
         self.num_overlap_item = len(overlap_item) + 1
         self.num_source_only_item = len(source_only_item)
