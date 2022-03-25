@@ -26,7 +26,7 @@ class CrossDomainRecommender(AbstractRecommender):
         self.SOURCE_ITEM_ID = dataset.source_domain_dataset.iid_field
         self.SOURCE_NEG_ITEM_ID = config['source_domain']['NEG_PREFIX'] + self.SOURCE_ITEM_ID
         self.source_num_users = dataset.source_domain_dataset.num(self.SOURCE_USER_ID)
-        self.target_num_items = dataset.source_domain_dataset.num(self.SOURCE_ITEM_ID)
+        self.source_num_items = dataset.source_domain_dataset.num(self.SOURCE_ITEM_ID)
 
         # load target dataset info
         self.TARGET_USER_ID = dataset.target_domain_dataset.uid_field
