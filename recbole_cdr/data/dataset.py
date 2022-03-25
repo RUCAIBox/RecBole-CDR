@@ -10,10 +10,12 @@ recbole_cdr.data.dataset
 import os
 import copy
 from collections import ChainMap
+import torch
 
 import numpy as np
 import pandas as pd
 from logging import getLogger
+from scipy.sparse import coo_matrix
 
 from recbole.data.dataset import Dataset
 from recbole.utils import FeatureSource, FeatureType, set_color
@@ -100,11 +102,11 @@ class CrossDomainSingleDataset(Dataset):
             self.field2id_token[field_name] = list(map_dict.keys())
             self.field2token_id[field_name] = map_dict
             if field_name in self.inter_feat.columns:
-                self.inter_feat[field_name] = self.inter_feat[field_name].map(map_dict)
+                self.inter_feat[field_name] = self.inter_feat[field_name].map(lambda x: map_dict.get(x, x))
             if self.user_feat is not None and field_name in self.user_feat.columns:
-                self.user_feat[field_name] = self.user_feat[field_name].map(map_dict)
+                self.user_feat[field_name] = self.user_feat[field_name].map(lambda x: map_dict.get(x, x))
             if self.item_feat is not None and field_name in self.item_feat.columns:
-                self.user_feat[field_name] = self.item_feat[field_name].map(map_dict)
+                self.user_feat[field_name] = self.item_feat[field_name].map(lambda x: map_dict.get(x, x))
 
     def data_process_after_remap(self):
         self._user_item_feat_preparation()
@@ -127,6 +129,112 @@ class CrossDomainSingleDataset(Dataset):
             self.item_feat = pd.merge(new_item_df, self.item_feat, on=self.iid_field, how='left')
             self.logger.debug(set_color('ordering item features by item id.', 'green'))
 
+    def get_sparse_matrix(self, user_num, item_num, form='coo', value_field=None):
+        """Get sparse matrix that describe relations between two fields.
+
+        Source and target should be token-like fields.
+
+        Sparse matrix has shape (``self.num(source_field)``, ``self.num(target_field)``).
+
+        For a row of <src, tgt>, ``matrix[src, tgt] = 1`` if ``value_field`` is ``None``,
+        else ``matrix[src, tgt] = df_feat[value_field][src, tgt]``.
+
+        Args:
+            user_num (int): Number of users.
+            item_num (int): Number of items.
+            form (str, optional): Sparse matrix format. Defaults to ``coo``.
+            value_field (str, optional): Data of sparse matrix, which should exist in ``df_feat``.
+                Defaults to ``None``.
+
+        Returns:
+            scipy.sparse: Sparse matrix in form ``coo`` or ``csr``.
+        """
+        src = self.inter_feat[self.uid_field]
+        tgt = self.inter_feat[self.iid_field]
+        if value_field is None:
+            data = np.ones(len(self.inter_feat))
+        else:
+            if value_field not in self.inter_feat:
+                raise ValueError(f'Value_field [{value_field}] should be one of `df_feat`\'s features.')
+            data = self.inter_feat[value_field]
+        mat = coo_matrix((data, (src, tgt)), shape=(user_num, item_num))
+
+        if form == 'coo':
+            return mat
+        elif form == 'csr':
+            return mat.tocsr()
+        else:
+            raise NotImplementedError(f'Sparse matrix format [{form}] has not been implemented.')
+
+    def get_history_matrix(self, user_num, item_num, row, value_field=None):
+        """Get dense matrix describe user/item's history interaction records.
+
+        ``history_matrix[i]`` represents ``i``'s history interacted ids.
+
+        ``history_value[i]`` represents ``i``'s history interaction records' values.
+            ``0`` if ``value_field = None``.
+
+        ``history_len[i]`` represents number of ``i``'s history interaction records.
+
+        ``0`` is used as padding.
+
+        Args:
+            user_num (int): Number of users.
+            item_num (int): Number of items.
+            row (str): ``user`` or ``item``.
+            value_field (str, optional): Data of matrix, which should exist in ``self.inter_feat``.
+                Defaults to ``None``.
+
+        Returns:
+            tuple:
+                - History matrix (torch.Tensor): ``history_matrix`` described above.
+                - History values matrix (torch.Tensor): ``history_value`` described above.
+                - History length matrix (torch.Tensor): ``history_len`` described above.
+        """
+        self._check_field('uid_field', 'iid_field')
+        print(self.inter_feat[self.iid_field].values)
+        print(len(self.inter_feat[self.iid_field].values))
+        exit()
+
+        user_ids, item_ids = self.inter_feat[self.uid_field].to_numpy(dtype=np.int64), \
+                             self.inter_feat[self.iid_field].to_numpy(dtype=np.int64)
+        if value_field is None:
+            values = np.ones(len(self.inter_feat))
+        else:
+            if value_field not in self.inter_feat:
+                raise ValueError(f'Value_field [{value_field}] should be one of `inter_feat`\'s features.')
+            values = self.inter_feat[value_field].numpy()
+
+        if row == 'user':
+            row_num, max_col_num = user_num, item_num
+            row_ids, col_ids = user_ids, item_ids
+        else:
+            row_num, max_col_num = item_num, user_num
+            row_ids, col_ids = item_ids, user_ids
+
+        history_len = np.zeros(row_num, dtype=np.int64)
+        for row_id in row_ids:
+            print(row_id)
+            history_len[row_id] += 1
+
+        col_num = np.max(history_len)
+        if col_num > max_col_num * 0.2:
+            print(col_num)
+            print(max_col_num)
+            self.logger.warning(
+                f'Max value of {row}\'s history interaction records has reached '
+                f'{col_num / max_col_num * 100}% of the total.'
+            )
+
+        history_matrix = np.zeros((row_num, col_num), dtype=np.int64)
+        history_value = np.zeros((row_num, col_num))
+        history_len[:] = 0
+        for row_id, value, col_id in zip(row_ids, values, col_ids):
+            history_matrix[row_id, history_len[row_id]] = col_id
+            history_value[row_id, history_len[row_id]] = value
+            history_len[row_id] += 1
+
+        return torch.LongTensor(history_matrix), torch.FloatTensor(history_value), torch.LongTensor(history_len)
 
 class CrossDomainDataset():
     """:class:`CrossDomainDataset` is based on :class:`~recbole_cdr.data.dataset.dataset.Dataset`,
@@ -372,3 +480,91 @@ class CrossDomainDataset():
 
         return [source_domain_train_dataset, target_domain_train_dataset,
                 target_domain_valid_dataset, target_domain_test_dataset]
+
+    def inter_matrix(self, form='coo', value_field=None, domain='source'):
+        """Get sparse matrix that describe interactions between user_id and item_id.
+
+        Sparse matrix has shape (user_num, item_num).
+
+        For a row of <src, tgt>, ``matrix[src, tgt] = 1`` if ``value_field`` is ``None``,
+        else ``matrix[src, tgt] = self.inter_feat[src, tgt]``.
+
+        Args:
+            form (str, optional): Sparse matrix format. Defaults to ``coo``.
+            value_field (str, optional): Data of sparse matrix, which should exist in ``df_feat``.
+                Defaults to ``None``.
+            domain (str, optional): Identifier string of the domain. Defaults to ``source``
+
+        Returns:
+            scipy.sparse: Sparse matrix in form ``coo`` or ``csr``.
+        """
+        if domain == 'source':
+            if not self.source_domain_dataset.uid_field or not self.source_domain_dataset.iid_field:
+                raise ValueError('source dataset does not exist uid/iid, thus can not converted to sparse matrix.')
+            return self.source_domain_dataset.get_sparse_matrix(self.num_total_user, self.num_total_item, form, value_field)
+        else:
+            if not self.target_domain_dataset.uid_field or not self.target_domain_dataset.iid_field:
+                raise ValueError('target dataset does not exist uid/iid, thus can not converted to sparse matrix.')
+            return self.target_domain_dataset.get_sparse_matrix(self.num_total_user, self.num_total_item, form, value_field)
+
+    def history_user_matrix(self, value_field=None, domain='source'):
+        """Get dense matrix describe item's history interaction records.
+
+        ``history_matrix[i]`` represents item ``i``'s history interacted user_id.
+
+        ``history_value[i]`` represents item ``i``'s history interaction records' values,
+        ``0`` if ``value_field = None``.
+
+        ``history_len[i]`` represents number of item ``i``'s history interaction records.
+
+        ``0`` is used as padding.
+
+        Args:
+            value_field (str, optional): Data of matrix, which should exist in ``self.inter_feat``.
+                Defaults to ``None``.
+            domain (str, optional): Identifier string of the domain. Defaults to ``source``
+
+        Returns:
+            tuple:
+                - History matrix (torch.Tensor): ``history_matrix`` described above.
+                - History values matrix (torch.Tensor): ``history_value`` described above.
+                - History length matrix (torch.Tensor): ``history_len`` described above.
+        """
+        if domain == 'source':
+            return self.source_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
+                                                                 row='item', value_field=value_field)
+        else:
+            return self.target_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
+                                                                 row='item', value_field=value_field)
+
+    def history_item_matrix(self, value_field=None, domain='source'):
+        """Get dense matrix describe item's history interaction records.
+
+        ``history_matrix[i]`` represents user ``i``'s history interacted item_id.
+
+        ``history_value[i]`` represents user ``i``'s history interaction records' values,
+        ``0`` if ``value_field = None``.
+
+        ``history_len[i]`` represents number of item ``i``'s history interaction records.
+
+        ``0`` is used as padding.
+
+        Args:
+            value_field (str, optional): Data of matrix, which should exist in ``self.inter_feat``.
+                Defaults to ``None``.
+            domain (str, optional): Identifier string of the domain. Defaults to ``source``
+
+        Returns:
+            tuple:
+                - History matrix (torch.Tensor): ``history_matrix`` described above.
+                - History values matrix (torch.Tensor): ``history_value`` described above.
+                - History length matrix (torch.Tensor): ``history_len`` described above.
+        """
+        if domain == 'source':
+            return self.source_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
+                                                                 row='user', value_field=value_field)
+        else:
+            return self.target_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
+                                                                 row='user', value_field=value_field)
+
+
