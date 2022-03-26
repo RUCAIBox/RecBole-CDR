@@ -39,6 +39,7 @@ class CrossDomainDataloader(AbstractDataLoader):
         self.state = CrossDomainDataLoaderState.BOTH
 
         super().__init__(config, dataset, target_sampler, shuffle=shuffle)
+        self.dataset.target_domain_dataset = target_dataset
 
     def _init_batch_size_and_step(self):
         pass

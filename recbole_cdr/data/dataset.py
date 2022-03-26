@@ -192,12 +192,8 @@ class CrossDomainSingleDataset(Dataset):
                 - History length matrix (torch.Tensor): ``history_len`` described above.
         """
         self._check_field('uid_field', 'iid_field')
-        print(self.inter_feat[self.iid_field].values)
-        print(len(self.inter_feat[self.iid_field].values))
-        exit()
 
-        user_ids, item_ids = self.inter_feat[self.uid_field].to_numpy(dtype=np.int64), \
-                             self.inter_feat[self.iid_field].to_numpy(dtype=np.int64)
+        user_ids, item_ids = self.inter_feat[self.uid_field].numpy(), self.inter_feat[self.iid_field].numpy()
         if value_field is None:
             values = np.ones(len(self.inter_feat))
         else:
@@ -214,13 +210,10 @@ class CrossDomainSingleDataset(Dataset):
 
         history_len = np.zeros(row_num, dtype=np.int64)
         for row_id in row_ids:
-            print(row_id)
             history_len[row_id] += 1
 
         col_num = np.max(history_len)
         if col_num > max_col_num * 0.2:
-            print(col_num)
-            print(max_col_num)
             self.logger.warning(
                 f'Max value of {row}\'s history interaction records has reached '
                 f'{col_num / max_col_num * 100}% of the total.'
@@ -379,7 +372,6 @@ class CrossDomainDataset():
             self.source_user_field = self.source_domain_dataset.uid_field
             self.target_user_field = self.target_domain_dataset.uid_field
             self.user_link_dict = self._load_link(user_link_file_path, between='user')
-            print(len(self.user_link_dict))
 
         if item_link_file_path:
             self.source_item_field = self.source_domain_dataset.iid_field
@@ -475,7 +467,7 @@ class CrossDomainDataset():
         target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
             = self.target_domain_dataset.build()
 
-        source_domain_train_dataset = copy.copy(self.source_domain_dataset)
+        source_domain_train_dataset = self.source_domain_dataset
         source_domain_train_dataset._change_feat_format()
 
         return [source_domain_train_dataset, target_domain_train_dataset,
