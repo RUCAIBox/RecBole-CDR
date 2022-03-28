@@ -125,9 +125,10 @@ class BiTGCF(CrossDomainRecommender):
         ego_embeddings = torch.cat([user_embeddings, item_embeddings], dim=0)
         return ego_embeddings, norm_adj_matrix
 
-    def graph_layer(self, adj_matrix, all_embeddings): #, proxy_embeddings=None):
+    def graph_layer(self, adj_matrix, all_embeddings):
         side_embeddings = torch.sparse.mm(adj_matrix, all_embeddings)
         new_embeddings = side_embeddings + torch.mul(all_embeddings, side_embeddings)
+        new_embeddings = all_embeddings + new_embeddings
         new_embeddings = self.dropout(new_embeddings)
         return new_embeddings
 
