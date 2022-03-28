@@ -1,0 +1,25 @@
+package:
+  name: recbole_cdr
+  version: 0.1.0
+
+source:
+  path: ../
+
+requirements:
+  build:
+    - python
+  host:
+    - python
+    - recbole >=1.0.0
+  run:
+    - python
+    - numpy >=1.0.0
+test:
+  imports:
+    - recbole_cdr
+
+about:
+  home: https://recbole.io/
+  license: MIT
+  summary: "An extension library for cross domain recommendation based on RecBole."
+  

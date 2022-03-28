@@ -1,0 +1,4 @@
+embedding_size: 64
+alpha: 0.5
+lambda: 0
+gamma: 0

@@ -1,0 +1,2 @@
+recursive-include recbole_cdr/properties *
+recursive-include recbole_cdr/dataset_example *

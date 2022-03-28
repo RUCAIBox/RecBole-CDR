@@ -1,0 +1,39 @@
+# dataset config
+gpu_id: 0
+state: INFO
+field_separator: "\t"
+source_domain:
+  dataset: ml-1m
+  data_path: 'dataset/'
+  seq_separator: " "
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  RATING_FIELD: rating
+  TIME_FIELD: timestamp
+  NEG_PREFIX: neg_
+  LABEL_FIELD: label
+  load_col:
+    inter: [user_id, item_id, rating]
+  user_inter_num_interval: "[5,inf)"
+  item_inter_num_interval: "[5,inf)"
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
+
+target_domain:
+  dataset: ml-100k
+  data_path: 'dataset/'
+  seq_separator: ","
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  RATING_FIELD: rating
+  TIME_FIELD: timestamp
+  NEG_PREFIX: neg_
+  LABEL_FIELD: label
+  load_col:
+    inter: [user_id, item_id, rating]
+  user_inter_num_interval: "[5,inf)"
+  item_inter_num_interval: "[5,inf)"
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
