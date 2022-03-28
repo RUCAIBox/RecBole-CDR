@@ -1,0 +1,6 @@
+user_embedding_size: 64
+source_item_embedding_size: 64
+target_item_embedding_size: 64
+share_embedding_size: 32
+alpha: 0.5
+reg_weight: 1e-4
