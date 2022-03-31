@@ -185,9 +185,7 @@ class CrsssDomainSourceSampler(AbstractSampler):
 
     def __init__(self, dataset, distribution='uniform'):
 
-        source_domain_train_dataset = copy.copy(dataset.source_domain_dataset)
-        source_domain_train_dataset._change_feat_format()
-        self.dataset = source_domain_train_dataset
+        self.dataset = dataset.source_domain_dataset
 
         self.uid_field = self.dataset.uid_field
         self.iid_field = self.dataset.iid_field
