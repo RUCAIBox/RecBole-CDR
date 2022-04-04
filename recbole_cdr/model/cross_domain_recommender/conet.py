@@ -185,7 +185,6 @@ class CoNet(CrossDomainRecommender):
                 input = output
 
             p = self.target_outputunit(output)
-            print(p.shape)
             score_list.append(p)
         score = torch.cat(score_list, dim=1).transpose(0, 1)
         return score
