@@ -4,7 +4,7 @@
 # @Email  : 1462034631@qq.com
 
 r"""
-BiTGCF
+CoNet
 ################################################
 Reference:
     Guangneng Hu et al. "CoNet: Collaborative Cross Networks for Cross-Domain Recommendation." in CIKM 2018.
