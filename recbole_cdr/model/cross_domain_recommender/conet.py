@@ -33,6 +33,15 @@ class CoNet(CrossDomainRecommender):
         self.SOURCE_LABEL = dataset.source_domain_dataset.label_field
         self.TARGET_LABEL = dataset.target_domain_dataset.label_field
 
+        assert self.overlapped_num_items == 1 or self.overlapped_num_users == 1, \
+            "CoNet model only support user overlapped or item overlapped dataset! "
+        if self.overlapped_num_users > 1:
+            self.mode = 'overlap_users'
+        elif self.overlapped_num_items > 1:
+            self.mode = 'overlap_items'
+        else:
+            self.mode = 'non_overlap'
+
         # load parameters info
         self.device = config['device']
 
@@ -89,24 +98,21 @@ class CoNet(CrossDomainRecommender):
             cross_paras.append(para)
         return cross_paras
 
-    def forward(self, source_user, source_item, target_user, target_item):
-        source_user_embedding = self.source_user_embedding(source_user)
-        source_item_embedding = self.source_item_embedding(source_item)
-        target_user_embedding = self.target_user_embedding(target_user)
-        target_item_embedding = self.target_item_embedding(target_item)
-
-        source_overlapuser_idx = set([idx for idx in range(source_user.shape[0]) if source_user[idx] < self.overlapped_num_users])
-        source_overlapitem_idx = set([idx for idx in range(source_item.shape[0]) if source_item[idx] < self.overlapped_num_items])
-        source_overlap_idx = source_overlapuser_idx.union(source_overlapitem_idx)
-        target_overlapuser_idx = set([idx for idx in range(target_user.shape[0]) if target_user[idx] < self.overlapped_num_users])
-        target_overlapitem_idx = set([idx for idx in range(target_item.shape[0]) if target_item[idx] < self.overlapped_num_items])
-        target_overlap_idx = target_overlapuser_idx.union(target_overlapitem_idx)
-        overlap_idx = torch.from_numpy(np.array(list(source_overlap_idx.intersection(target_overlap_idx)))).to(self.device)
-
+    def source_forward(self, user, item):
+        source_user_embedding = self.source_user_embedding(user)
+        source_item_embedding = self.source_item_embedding(item)
+        target_user_embedding = self.target_user_embedding(user)
+        target_item_embedding = self.target_item_embedding(item)
         source_crossinput = torch.cat([source_user_embedding, source_item_embedding], dim=1).to(self.device)
         target_crossinput = torch.cat([target_user_embedding, target_item_embedding], dim=1).to(self.device)
 
-        for i, (source_cross_module, target_cross_module) in enumerate(zip(self.source_crossunit, self.target_crossunit)):
+        if self.mode == 'overlap_users':
+            overlap_idx = user > self.overlapped_num_users
+        else:
+            overlap_idx = item > self.overlapped_num_items
+
+        for i, (source_cross_module, target_cross_module) in enumerate(
+                zip(self.source_crossunit, self.target_crossunit)):
             source_fc_module, source_act_module = source_cross_module
             source_fc_module = source_fc_module.to(self.device)
             source_act_module = source_act_module.to(self.device)
@@ -114,21 +120,63 @@ class CoNet(CrossDomainRecommender):
             target_fc_module, target_act_module = target_cross_module
             target_fc_module = target_fc_module.to(self.device)
             target_act_module = target_act_module.to(self.device)
+
             source_crossoutput = source_fc_module(source_crossinput)
-            source_crossoutput[overlap_idx] = source_crossoutput[overlap_idx] + torch.mm(target_crossinput, cross_para)[overlap_idx]
+            source_crossoutput[overlap_idx] = source_crossoutput[overlap_idx] + torch.mm(target_crossinput, cross_para)[
+                overlap_idx]
             source_crossoutput = source_act_module(source_crossoutput)
 
             target_crossoutput = target_fc_module(target_crossinput)
-            target_crossoutput[overlap_idx] = target_crossoutput[overlap_idx] + torch.mm(source_crossinput, cross_para)[overlap_idx]
+            target_crossoutput[overlap_idx] = target_crossoutput[overlap_idx] + torch.mm(source_crossinput, cross_para)[
+                overlap_idx]
             target_crossoutput = target_act_module(target_crossoutput)
 
             source_crossinput = source_crossoutput
             target_crossinput = target_crossoutput
 
-        source_out = self.source_outputunit(source_crossoutput)
-        target_out = self.target_outputunit(target_crossoutput)
+        source_out = self.source_outputunit(source_crossoutput).squeeze()
 
-        return source_out, target_out
+        return source_out
+
+    def target_forward(self, user, item):
+        source_user_embedding = self.source_user_embedding(user)
+        source_item_embedding = self.source_item_embedding(item)
+        target_user_embedding = self.target_user_embedding(user)
+        target_item_embedding = self.target_item_embedding(item)
+        source_crossinput = torch.cat([source_user_embedding, source_item_embedding], dim=1).to(self.device)
+        target_crossinput = torch.cat([target_user_embedding, target_item_embedding], dim=1).to(self.device)
+
+        if self.mode == 'overlap_users':
+            overlap_idx = user > self.overlapped_num_users
+        else:
+            overlap_idx = item > self.overlapped_num_items
+
+        for i, (source_cross_module, target_cross_module) in enumerate(
+                zip(self.source_crossunit, self.target_crossunit)):
+            source_fc_module, source_act_module = source_cross_module
+            source_fc_module = source_fc_module.to(self.device)
+            source_act_module = source_act_module.to(self.device)
+            cross_para = self.crossparas[i].to(self.device)
+            target_fc_module, target_act_module = target_cross_module
+            target_fc_module = target_fc_module.to(self.device)
+            target_act_module = target_act_module.to(self.device)
+
+            source_crossoutput = source_fc_module(source_crossinput)
+            source_crossoutput[overlap_idx] = source_crossoutput[overlap_idx] + torch.mm(target_crossinput, cross_para)[
+                overlap_idx]
+            source_crossoutput = source_act_module(source_crossoutput)
+
+            target_crossoutput = target_fc_module(target_crossinput)
+            target_crossoutput[overlap_idx] = target_crossoutput[overlap_idx] + torch.mm(source_crossinput, cross_para)[
+                overlap_idx]
+            target_crossoutput = target_act_module(target_crossoutput)
+
+            source_crossinput = source_crossoutput
+            target_crossinput = target_crossoutput
+
+        target_out = self.target_outputunit(target_crossoutput).squeeze()
+
+        return target_out
 
     def calculate_loss(self, interaction):
         source_user = interaction[self.SOURCE_USER_ID]
@@ -139,7 +187,8 @@ class CoNet(CrossDomainRecommender):
         target_item = interaction[self.TARGET_ITEM_ID]
         target_label = interaction[self.TARGET_LABEL]
 
-        p_source, p_target = self.forward(source_user, source_item, target_user, target_item)
+        p_source = self.source_forward(source_user, source_item)
+        p_target = self.target_forward(target_user, target_item)
 
         loss_s = self.loss(p_source, source_label)
         loss_t = self.loss(p_target, target_label)
@@ -165,6 +214,7 @@ class CoNet(CrossDomainRecommender):
             input = output
 
         p = self.target_outputunit(output)
+
         return p
 
     def full_sort_predict(self, interaction):
@@ -179,7 +229,7 @@ class CoNet(CrossDomainRecommender):
         for u_embed in user_e_list:
             input = torch.cat([u_embed, all_item_e], dim=1)
             for i, target_cross_module in enumerate(self.target_crossunit):
-                target_fc_module, target_act_module = target_cross_module  # [d_in, d_out]
+                target_fc_module, target_act_module = target_cross_module
                 output = target_act_module(target_fc_module(input))
 
                 input = output
