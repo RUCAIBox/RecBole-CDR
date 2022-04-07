@@ -88,7 +88,7 @@ class CoNet(CrossDomainRecommender):
         for i, (d_in, d_out) in enumerate(zip(cross_layers[:-1], cross_layers[1:])):
             module = (nn.Linear(d_in, d_out), nn.ReLU())
             cross_modules.append(module)
-        return cross_modules
+        return nn.ModuleList(cross_modules)
 
     def cross_parameters(self, cross_layers):
         cross_paras = []
@@ -96,7 +96,7 @@ class CoNet(CrossDomainRecommender):
             para = nn.Parameter(torch.empty(d_in, d_out))
             xavier_normal_(para)
             cross_paras.append(para)
-        return cross_paras
+        return nn.ModuleList(cross_paras)
 
     def source_forward(self, user, item):
         source_user_embedding = self.source_user_embedding(user)
@@ -114,12 +114,12 @@ class CoNet(CrossDomainRecommender):
         for i, (source_cross_module, target_cross_module) in enumerate(
                 zip(self.source_crossunit, self.target_crossunit)):
             source_fc_module, source_act_module = source_cross_module
-            source_fc_module = source_fc_module.to(self.device)
-            source_act_module = source_act_module.to(self.device)
-            cross_para = self.crossparas[i].to(self.device)
+            source_fc_module = source_fc_module
+            source_act_module = source_act_module
+            cross_para = self.crossparas[i]
             target_fc_module, target_act_module = target_cross_module
-            target_fc_module = target_fc_module.to(self.device)
-            target_act_module = target_act_module.to(self.device)
+            target_fc_module = target_fc_module
+            target_act_module = target_act_module
 
             source_crossoutput = source_fc_module(source_crossinput)
             source_crossoutput[overlap_idx] = source_crossoutput[overlap_idx] + torch.mm(target_crossinput, cross_para)[
@@ -154,12 +154,12 @@ class CoNet(CrossDomainRecommender):
         for i, (source_cross_module, target_cross_module) in enumerate(
                 zip(self.source_crossunit, self.target_crossunit)):
             source_fc_module, source_act_module = source_cross_module
-            source_fc_module = source_fc_module.to(self.device)
-            source_act_module = source_act_module.to(self.device)
-            cross_para = self.crossparas[i].to(self.device)
+            source_fc_module = source_fc_module
+            source_act_module = source_act_module
+            cross_para = self.crossparas[i]
             target_fc_module, target_act_module = target_cross_module
-            target_fc_module = target_fc_module.to(self.device)
-            target_act_module = target_act_module.to(self.device)
+            target_fc_module = target_fc_module
+            target_act_module = target_act_module
 
             source_crossoutput = source_fc_module(source_crossinput)
             source_crossoutput[overlap_idx] = source_crossoutput[overlap_idx] + torch.mm(target_crossinput, cross_para)[
