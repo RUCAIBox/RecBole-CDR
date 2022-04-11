@@ -13,6 +13,7 @@ save_dataloaders: False
 dataloaders_save_path: ~
 log_wandb: False
 wandb_project: 'recbole_cdr'
+require_map: False
 
 # training settings
 epochs: 300

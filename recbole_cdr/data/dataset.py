@@ -1,6 +1,10 @@
 # @Time   : 2022/3/8
 # @Author : Zihan Lin
 # @Email  : zhlin@ruc.edu.cn
+# UPDATE
+# @Time   : 2022/4/9
+# @Author : Gaowei Zhang
+# @email  : 1462034631@qq.com
 
 """
 recbole_cdr.data.dataset
@@ -247,6 +251,7 @@ class CrossDomainDataset():
         assert 'source_domain' in config and 'target_domain' in config
         self.config = config
         self.logger = getLogger()
+        self.require_map = config['require_map']
         self.logger.debug(set_color('Source Domain', 'blue'))
         source_config = config.update(config['source_domain'])
         self.source_domain_dataset = CrossDomainSingleDataset(source_config, domain='source')
@@ -457,7 +462,45 @@ class CrossDomainDataset():
         df.columns = columns
         return df
 
+    def build_map_dataset(self):
+        if self.num_overlap_user > 1:
+            num_overlap = self.num_overlap_user
+        else:
+            num_overlap = self.num_overlap_item
+
+        map_dataset = torch.randperm(num_overlap)
+
+        return map_dataset
+
     def build(self):
+        """Processing dataset in target domain according to evaluation setting, including Group, Order and Split.
+        See :class:`~recbole_cdr.config.eval_setting.EvalSetting` for details.
+
+        Returns:
+            list: List of built :class:`Dataset`.
+        """
+        if self.require_map:
+            target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
+                = self.target_domain_dataset.build()
+
+            source_domain_train_dataset, source_domain_valid_dataset, source_domain_test_dataset \
+                = self.source_domain_dataset.build()
+
+            self.map_dataset = self.build_map_dataset()
+
+            return [source_domain_train_dataset, source_domain_valid_dataset, source_domain_test_dataset,
+                    target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset]
+        else:
+            target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
+                = self.target_domain_dataset.build()
+
+            source_domain_train_dataset = self.source_domain_dataset
+            source_domain_train_dataset._change_feat_format()
+
+            return [source_domain_train_dataset, None, None,
+                    target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset]
+
+    '''def build(self):
         """Processing dataset in target domain according to evaluation setting, including Group, Order and Split.
         See :class:`~recbole_cdr.config.eval_setting.EvalSetting` for details.
 
@@ -471,7 +514,7 @@ class CrossDomainDataset():
         source_domain_train_dataset._change_feat_format()
 
         return [source_domain_train_dataset, target_domain_train_dataset,
-                target_domain_valid_dataset, target_domain_test_dataset]
+                target_domain_valid_dataset, target_domain_test_dataset]'''
 
     def inter_matrix(self, form='coo', value_field=None, domain='source'):
         """Get sparse matrix that describe interactions between user_id and item_id.
@@ -558,5 +601,3 @@ class CrossDomainDataset():
         else:
             return self.target_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
                                                                  row='user', value_field=value_field)
-
-

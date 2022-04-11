@@ -1,6 +1,10 @@
 # @Time   : 2022/3/11
 # @Author : Zihan Lin
 # @Email  : zhlin@ruc.edu.cn
+# UPDATE
+# @Time   : 2022/4/9
+# @Author : Gaowei Zhang
+# @email  : 1462034631@qq.com
 
 """
 recbole_cdr.data.utils
@@ -39,7 +43,7 @@ def create_dataset(config):
     else:
         model_type = config['MODEL_TYPE']
         type2class = {
-            ModelType.CROSSDOMAIN: 'CrossDomainDataset',
+            ModelType.CROSSDOMAIN: 'CrossDomainDataset'
         }
         dataset_class = getattr(dataset_module, type2class[model_type])
 
@@ -86,17 +90,31 @@ def data_preparation(config, dataset):
     else:
         built_datasets = dataset.build()
 
-        source_train_dataset, target_train_dataset, valid_dataset, test_dataset = built_datasets
-        target_train_sampler, valid_sampler, test_sampler = \
-            create_samplers(config, dataset.target_domain_dataset, built_datasets[1:])
+        source_train_dataset, source_valid_dataset, source_test_dataset, \
+            target_train_dataset, target_valid_dataset, target_test_dataset = built_datasets
 
-        source_train_sampler = CrsssDomainSourceSampler(dataset, config['train_neg_sample_args']['distribution'])
+        target_train_sampler, target_valid_sampler, target_test_sampler = \
+            create_samplers(config, dataset.target_domain_dataset, built_datasets[3:])
+
+        if source_valid_dataset is not None and source_test_dataset is not None:
+            source_train_sampler = CrsssDomainSourceSampler(dataset, config['train_neg_sample_args']['distribution'])
+            source_valid_sampler = CrsssDomainSourceSampler(dataset, config['eval_neg_sample_args']['distribution'])
+            #source_valid_data = get_dataloader(config, 'evaluation')(config, source_valid_dataset, source_valid_sampler, shuffle=False)
+            #target_valid_data = get_dataloader(config, 'evaluation')(config, target_valid_dataset, target_valid_sampler, shuffle=False)
+
+            #valid_data = (source_valid_data, target_valid_data)
+            valid_data = get_dataloader(config, 'evaluation')(config, target_valid_dataset, target_valid_sampler,
+                                                              shuffle=False)
+        else:
+            source_train_sampler = CrsssDomainSourceSampler(dataset, config['train_neg_sample_args']['distribution'])
+            valid_data = get_dataloader(config, 'evaluation')(config, target_valid_dataset, target_valid_sampler, shuffle=False)
 
         train_data = get_dataloader(config, 'train')(config, dataset, source_train_dataset, source_train_sampler,
-                                                     target_train_dataset, target_train_sampler, shuffle=True)
+                                                           target_train_dataset, target_train_sampler, shuffle=True)
 
-        valid_data = get_dataloader(config, 'evaluation')(config, valid_dataset, valid_sampler, shuffle=False)
-        test_data = get_dataloader(config, 'evaluation')(config, test_dataset, test_sampler, shuffle=False)
+        test_data = get_dataloader(config, 'evaluation')(config, target_test_dataset, \
+                                                                target_test_sampler, shuffle=False)
+
         if config['save_dataloaders']:
             save_split_dataloaders(config, dataloaders=(train_data, valid_data, test_data))
 
