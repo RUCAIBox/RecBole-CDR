@@ -2,6 +2,10 @@
 # @Time   : 2022/3/30
 # @Author : Gaowei Zhang
 # @Email  : 1462034631@qq.com
+# UPDATE
+# @Time    :   2022/4/11
+# @Author  :   Zihan Lin
+# @email   :   zhlin@ruc.edu.cn
 
 r"""
 CoNet
@@ -10,13 +14,11 @@ Reference:
     Guangneng Hu et al. "CoNet: Collaborative Cross Networks for Cross-Domain Recommendation." in CIKM 2018.
 """
 
-import numpy as np
-
 import torch
 import torch.nn as nn
 
 from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
-from recbole.model.init import xavier_normal_initialization, xavier_normal_
+from recbole.model.init import xavier_normal_initialization
 from recbole.utils import InputType
 
 
@@ -48,7 +50,7 @@ class CoNet(CrossDomainRecommender):
         # load parameters info
         self.latent_dim = config['embedding_size']  # int type:the embedding size of lightGCN
         self.reg_weight = config['reg_weight']  # float32 type: the weight decay for l2 normalization
-        self.cross_layers = config["mlp_hidden_size"] #list type: the list of hidden lyaers size
+        self.cross_layers = config["mlp_hidden_size"]  # list type: the list of hidden layers size
 
         # define layers and loss
         self.source_user_embedding = torch.nn.Embedding(num_embeddings=self.total_num_users, embedding_dim=self.latent_dim)
@@ -66,13 +68,15 @@ class CoNet(CrossDomainRecommender):
             self.target_user_embedding.weight[self.target_num_users:].fill_(0)
             self.target_item_embedding.weight[self.target_num_items:].fill_(0)
 
-        self.source_crossunit = self.cross_units([2 * self.latent_dim] + self.cross_layers)
+        self.source_crossunit_linear, self.source_crossunit_act \
+            = self.cross_units([2 * self.latent_dim] + self.cross_layers)
         self.source_outputunit = nn.Sequential(
             nn.Linear(self.cross_layers[-1], 1),
             nn.Sigmoid()
         )
 
-        self.target_crossunit = self.cross_units([2 * self.latent_dim] + self.cross_layers)
+        self.target_crossunit_linear, self.target_crossunit_act \
+            = self.cross_units([2 * self.latent_dim] + self.cross_layers)
         self.target_outputunit = nn.Sequential(
             nn.Linear(self.cross_layers[-1], 1),
             nn.Sigmoid()
@@ -84,17 +88,16 @@ class CoNet(CrossDomainRecommender):
         self.apply(xavier_normal_initialization)
 
     def cross_units(self, cross_layers):
-        cross_modules = []
+        cross_modules_linear, cross_modules_act = [], []
         for i, (d_in, d_out) in enumerate(zip(cross_layers[:-1], cross_layers[1:])):
-            module = (nn.Linear(d_in, d_out), nn.ReLU())
-            cross_modules.append(module)
-        return nn.ModuleList(cross_modules)
+            cross_modules_linear.append(nn.Linear(d_in, d_out))
+            cross_modules_act.append(nn.ReLU())
+        return nn.ModuleList(cross_modules_linear), nn.ModuleList(cross_modules_act)
 
     def cross_parameters(self, cross_layers):
         cross_paras = []
         for i, (d_in, d_out) in enumerate(zip(cross_layers[:-1], cross_layers[1:])):
-            para = nn.Parameter(torch.empty(d_in, d_out))
-            xavier_normal_(para)
+            para = nn.Linear(d_in, d_out, bias=False)
             cross_paras.append(para)
         return nn.ModuleList(cross_paras)
 
@@ -111,13 +114,12 @@ class CoNet(CrossDomainRecommender):
         else:
             overlap_idx = item > self.overlapped_num_items
 
-        for i, (source_cross_module, target_cross_module) in enumerate(
-                zip(self.source_crossunit, self.target_crossunit)):
-            source_fc_module, source_act_module = source_cross_module
+        for i in range(len(self.source_crossunit_linear)):
+            source_fc_module, source_act_module = self.source_crossunit_linear[i], self.source_crossunit_act[i]
             source_fc_module = source_fc_module
             source_act_module = source_act_module
-            cross_para = self.crossparas[i]
-            target_fc_module, target_act_module = target_cross_module
+            cross_para = self.crossparas[i].weight.t()
+            target_fc_module, target_act_module = self.target_crossunit_linear[i], self.target_crossunit_act[i]
             target_fc_module = target_fc_module
             target_act_module = target_act_module
 
@@ -134,7 +136,7 @@ class CoNet(CrossDomainRecommender):
             source_crossinput = source_crossoutput
             target_crossinput = target_crossoutput
 
-        source_out = self.source_outputunit(source_crossoutput).squeeze()
+        source_out = self.source_outputunit(source_crossinput).squeeze()
 
         return source_out
 
@@ -151,13 +153,12 @@ class CoNet(CrossDomainRecommender):
         else:
             overlap_idx = item > self.overlapped_num_items
 
-        for i, (source_cross_module, target_cross_module) in enumerate(
-                zip(self.source_crossunit, self.target_crossunit)):
-            source_fc_module, source_act_module = source_cross_module
+        for i in range(len(self.target_crossunit_linear)):
+            source_fc_module, source_act_module = self.source_crossunit_linear[i], self.source_crossunit_act[i]
             source_fc_module = source_fc_module
             source_act_module = source_act_module
-            cross_para = self.crossparas[i]
-            target_fc_module, target_act_module = target_cross_module
+            cross_para = self.crossparas[i].weight.t()
+            target_fc_module, target_act_module = self.target_crossunit_linear[i], self.target_crossunit_act[i]
             target_fc_module = target_fc_module
             target_act_module = target_act_module
 
@@ -174,7 +175,7 @@ class CoNet(CrossDomainRecommender):
             source_crossinput = source_crossoutput
             target_crossinput = target_crossoutput
 
-        target_out = self.target_outputunit(target_crossoutput).squeeze()
+        target_out = self.target_outputunit(target_crossinput).squeeze()
 
         return target_out
 
@@ -195,7 +196,7 @@ class CoNet(CrossDomainRecommender):
 
         reg_loss = 0
         for para in self.crossparas:
-            reg_loss += torch.norm(para)
+            reg_loss += torch.norm(para.weight)
         loss = loss_s + loss_t + reg_loss
 
         return loss
@@ -207,13 +208,13 @@ class CoNet(CrossDomainRecommender):
         item_e = self.target_item_embedding(item)
         input = torch.cat([user_e, item_e], dim=1)
 
-        for i, target_cross_module in enumerate(self.target_crossunit):
-            target_fc_module, target_act_module = target_cross_module
+        for i in range(len(self.target_crossunit_linear)):
+            target_fc_module, target_act_module = self.target_crossunit_linear[i], self.target_crossunit_act[i]
             output = target_act_module(target_fc_module(input))
 
             input = output
 
-        p = self.target_outputunit(output)
+        p = self.target_outputunit(input)
 
         return p
 
@@ -228,13 +229,13 @@ class CoNet(CrossDomainRecommender):
         score_list = []
         for u_embed in user_e_list:
             input = torch.cat([u_embed, all_item_e], dim=1)
-            for i, target_cross_module in enumerate(self.target_crossunit):
-                target_fc_module, target_act_module = target_cross_module
+            for i in range(len(self.target_crossunit_linear)):
+                target_fc_module, target_act_module = self.target_crossunit_linear[i], self.target_crossunit_act[i]
                 output = target_act_module(target_fc_module(input))
 
                 input = output
 
-            p = self.target_outputunit(output)
+            p = self.target_outputunit(input)
             score_list.append(p)
         score = torch.cat(score_list, dim=1).transpose(0, 1)
         return score
