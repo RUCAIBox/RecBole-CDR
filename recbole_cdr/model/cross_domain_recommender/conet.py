@@ -110,9 +110,9 @@ class CoNet(CrossDomainRecommender):
         target_crossinput = torch.cat([target_user_embedding, target_item_embedding], dim=1).to(self.device)
 
         if self.mode == 'overlap_users':
-            overlap_idx = user > self.overlapped_num_users
+            overlap_idx = user < self.overlapped_num_users
         else:
-            overlap_idx = item > self.overlapped_num_items
+            overlap_idx = item < self.overlapped_num_items
 
         for i in range(len(self.source_crossunit_linear)):
             source_fc_module, source_act_module = self.source_crossunit_linear[i], self.source_crossunit_act[i]
@@ -149,9 +149,9 @@ class CoNet(CrossDomainRecommender):
         target_crossinput = torch.cat([target_user_embedding, target_item_embedding], dim=1).to(self.device)
 
         if self.mode == 'overlap_users':
-            overlap_idx = user > self.overlapped_num_users
+            overlap_idx = user < self.overlapped_num_users
         else:
-            overlap_idx = item > self.overlapped_num_items
+            overlap_idx = item < self.overlapped_num_items
 
         for i in range(len(self.target_crossunit_linear)):
             source_fc_module, source_act_module = self.source_crossunit_linear[i], self.source_crossunit_act[i]
