@@ -53,4 +53,7 @@ def get_trainer(model_type, model_name):
     try:
         return getattr(importlib.import_module('recbole_cdr.trainer'), model_name + 'Trainer')
     except AttributeError:
-        return getattr(importlib.import_module('recbole_cdr.trainer'), 'Trainer')
+        if model_type == ModelType.CROSSDOMAIN:
+            return getattr(importlib.import_module('recbole_cdr.trainer'), 'CrossDomainTrainer')
+        else:
+            return getattr(importlib.import_module('recbole.trainer'), 'Trainer')

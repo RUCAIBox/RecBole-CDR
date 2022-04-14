@@ -23,60 +23,49 @@ class CrossDomainTrainer(Trainer):
 
     def __init__(self, config, model):
         super(CrossDomainTrainer, self).__init__(config, model)
+        self.train_args = config['train_args']
+        self.config_step = config['eval_step']
+        self.scheme_list = ['BOTH', 'SOURCE', 'TARGET', 'OVERLAP']
+        self.state_list = [CrossDomainDataLoaderState.BOTH, CrossDomainDataLoaderState.SOURCE, CrossDomainDataLoaderState.TARGET, CrossDomainDataLoaderState.OVERLAP]
+        self.scheme2state = {}
+        for scheme, state in zip(self.scheme_list, self.state_list):
+            self.scheme2state[scheme] = state
 
+        self.train_scheme = []
+        self.train_epochs = []
+        self.split_valid_flag = False
+        for train_arg in self.train_args:
+            train_scheme, train_epoch = train_arg.split(':')
+            self.train_scheme.append(train_scheme)
+            self.train_epochs.append(train_epoch)
+            if train_scheme == 'SOURCE':
+                self.split_valid_flag = True
 
-class EMCDRTrainer(Trainer):
-    r"""
-
-    """
-
-    def __init__(self, config, model):
-        super(EMCDRTrainer, self).__init__(config, model)
-        self.source_train_step = config['source_train_step']
-        self.target_train_step = config['target_train_step']
-        self.phase_list = [CrossDomainDataLoaderState.SOURCE, CrossDomainDataLoaderState.TARGET,
-                           CrossDomainDataLoaderState.MAP, CrossDomainDataLoaderState.BOTH]
-        self.phase_pr = 0
-        self.phase = self.phase_list[self.phase_pr]
-
-    def _reinit(self):
+    def _reinit(self, phase):
         self.start_epoch = 0
         self.cur_step = 0
         self.best_valid_score = -np.inf if self.valid_metric_bigger else np.inf
         self.best_valid_result = None
+        self.item_tensor = None
+        self.tot_item_num = None
         self.train_loss_dict = dict()
-        self.phase_pr += 1
-        self.phase = self.phase_list[self.phase_pr]
-
-    '''def _train_epoch(self, train_data, epoch_idx, loss_func=None, show_progress=False):
-        if self.phase == CrossDomainDataLoaderState.SOURCE:
-            return super()._train_epoch(
-                train_data, epoch_idx, loss_func=self.model.calculate_source_loss, show_progress=show_progress
-            )
-        elif self.phase in [CrossDomainDataLoaderState.TARGET, CrossDomainDataLoaderState.BOTH]:
-            return super()._train_epoch(
-                train_data, epoch_idx, loss_func=self.model.calculate_target_loss, show_progress=show_progress
-            )
-        elif self.phase == CrossDomainDataLoaderState.MAP:
-            return super()._train_epoch(
-                train_data, epoch_idx, loss_func=self.model.calculate_map_loss, show_progress=show_progress
-            )
-        return None'''
+        self.epochs = int(self.train_epochs[phase])
+        self.eval_step = min(self.config_step, self.epochs)
 
     def fit(self, train_data, valid_data=None, verbose=True, saved=True, show_progress=False, callback_fn=None):
-        train_data.set_mode(CrossDomainDataLoaderState.SOURCE)
-        self.model.set_phase('source')
-        super().fit(train_data, None, verbose, saved, show_progress, callback_fn)
-
-        self._reinit()
-        train_data.set_mode(CrossDomainDataLoaderState.TARGET)
-        self.model.set_phase('target')
-        super().fit(train_data, valid_data, verbose, saved, show_progress, callback_fn)
-
-        self._reinit()
-        train_data.set_mode(CrossDomainDataLoaderState.MAP)
-        train_data.reinit_pr_after_map()
-        self.model.set_phase('map')
-        super().fit(train_data, valid_data, verbose, saved, show_progress, callback_fn)
+        for phase in range(len(self.train_scheme)):
+            self._reinit(phase)
+            scheme = self.train_scheme[phase]
+            state = self.scheme2state[scheme]
+            train_data.set_mode(state)
+            self.model.set_phase(scheme)
+            if self.split_valid_flag and valid_data is not None:
+                source_valid_data, target_valid_data = valid_data
+                if scheme == 'SOURCE':
+                    super().fit(train_data, source_valid_data, verbose, saved, show_progress, callback_fn)
+                else:
+                    super().fit(train_data, target_valid_data, verbose, saved, show_progress, callback_fn)
+            else:
+                super().fit(train_data, valid_data, verbose, saved, show_progress, callback_fn)
 
         return self.best_valid_score, self.best_valid_result
