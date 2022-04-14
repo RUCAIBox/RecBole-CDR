@@ -4,6 +4,6 @@ source_embedding_size: 64
 target_embedding_size: 64
 reg_weight: 1e-2
 mapping_dunction: non_linear
-mlp_hidden_size: [32,16,32]
+mlp_hidden_size: [128]
 require_map: True
-map_batch_size: 100
+overlap_batch_size: 100
