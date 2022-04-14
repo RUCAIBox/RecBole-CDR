@@ -49,8 +49,6 @@ class EMCDR(CrossDomainRecommender):
         else:
             input_type = InputType.PAIRWISE
             # load dataset info
-            self.SOURCE_NEG_ITEM_ID = self.neg_prefix + self.SOURCE_ITEM_ID
-            self.TARGET_NEG_ITEM_ID = self.neg_prefix + self.TARGET_ITEM_ID
             self.loss = BPRLoss()
         self.source_latent_dim = config['source_embedding_size']  # int type:the embedding size of source latent space
         self.target_latent_dim = config['target_embedding_size']  # int type:the embedding size of target latent space
@@ -121,11 +119,10 @@ class EMCDR(CrossDomainRecommender):
         else:
             source_user = interaction[self.SOURCE_USER_ID]
             source_pos_item = interaction[self.SOURCE_ITEM_ID]
-            source_neg_item = interaction[self.NEG_SOURCE_ITEM_ID]
+            source_neg_item = interaction[self.SOURCE_NEG_ITEM_ID]
 
-            user_e, pos_e = self.source_forward(source_user, source_pos_item)
-            neg_e = self.source_item_embedding(source_neg_item)
-            pos_item_score, neg_item_score = torch.mul(user_e, pos_e).sum(dim=1), torch.mul(user_e, neg_e).sum(dim=1)
+            pos_item_score = self.source_forward(source_user, source_pos_item)
+            neg_item_score = self.source_forward(source_user, source_neg_item)
             loss_s = self.loss(pos_item_score, neg_item_score) + \
                      self.reg_weight * self.reg_loss(self.source_user_embedding(source_user),
                                                      self.source_item_embedding(source_pos_item))
@@ -145,45 +142,45 @@ class EMCDR(CrossDomainRecommender):
         else:
             target_user = interaction[self.TARGET_USER_ID]
             target_pos_item = interaction[self.TARGET_ITEM_ID]
-            target_neg_item = interaction[self.NEG_TARGET_ITEM_ID]
+            target_neg_item = interaction[self.TARGET_NEG_ITEM_ID]
 
-            user_e, pos_e = self.target_forward(target_user, target_pos_item)
-            neg_e = self.target_item_embedding(target_neg_item)
-            pos_item_score, neg_item_score = torch.mul(user_e, pos_e).sum(dim=1), torch.mul(user_e, neg_e).sum(dim=1)
+            pos_item_score = self.target_forward(target_user, target_pos_item)
+            neg_item_score = self.target_forward(target_user, target_neg_item)
             loss_t = self.loss(pos_item_score, neg_item_score) + \
                      self.reg_weight * self.reg_loss(self.target_user_embedding(target_user),
                                                      self.target_item_embedding(target_pos_item))
         return loss_t
 
     def calculate_map_loss(self, interaction):
+        idx = interaction[self.OVERLAP_ID]
         if self.mode == 'overlap_users':
-            source_user_e = self.source_user_embedding(interaction)
-            target_user_e = self.target_user_embedding(interaction)
+            source_user_e = self.source_user_embedding(idx)
+            target_user_e = self.target_user_embedding(idx)
             map_e = self.mapping(source_user_e)
             loss = self.map_loss(map_e, target_user_e)
         else:
-            source_item_e = self.source_item_embedding(interaction)
-            target_item_e = self.target_item_embedding(interaction)
+            source_item_e = self.source_item_embedding(idx)
+            target_item_e = self.target_item_embedding(idx)
             map_e = self.mapping(source_item_e)
             loss = self.map_loss(map_e, target_item_e)
         return loss
 
     def calculate_loss(self, interaction):
-        if self.phase == 'source':
+        if self.phase == 'SOURCE':
             return self.calculate_source_loss(interaction)
-        elif self.phase == 'target':
-            return self.calculate_target_loss(interaction)
-        else:
+        elif self.phase == 'OVERLAP':
             return self.calculate_map_loss(interaction)
+        else:
+            return self.calculate_target_loss(interaction)
 
     def predict(self, interaction):
-        if self.phase == 'source':
+        if self.phase == 'SOURCE':
             user = interaction[self.SOURCE_USER_ID]
             item = interaction[self.SOURCE_ITEM_ID]
             user_e = self.source_user_embedding(user)
             item_e = self.source_item_embedding(item)
             score = torch.mul(user_e, item_e).sum(dim=1)
-        elif self.phase == 'target':
+        elif self.phase == 'TARGET':
             user = interaction[self.TARGET_USER_ID]
             item = interaction[self.TARGET_ITEM_ID]
             user_e = self.target_user_embedding(user)
@@ -207,17 +204,24 @@ class EMCDR(CrossDomainRecommender):
         return score
 
     def full_sort_predict(self, interaction):
-        user = interaction[self.TARGET_USER_ID]
-        if self.mode == 'overlap_users':
-            user_e = torch.empty(user.shape[0], self.target_latent_dim)
-            all_item_e = self.item_embedding.weight[:self.target_num_items]
-            overlap_idx = user < self.overlapped_num_users
-            user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
+        if self.phase == 'SOURCE':
+            user = interaction[self.SOURCE_USER_ID]
+            user_e = torch.empty(user.shape[0], self.source_latent_dim)
+            overlap_item_e = self.source_item_embedding.weight[:self.overlapped_num_items]
+            source_item_e = self.source_item_embedding.weight[self.target_num_items:]
+            all_item_e = torch.cat([overlap_item_e, source_item_e], dim=0)
         else:
-            user_e = self.target_user_embedding(user)
-            overlap_item_e = self.mapping(self.source_item_embedding.weight[:self.overlapped_num_items])
-            target_item_e = self.target_item_embedding.weight[self.overlapped_num_items:self.target_num_items]
-            all_item_e = torch.cat([overlap_item_e, target_item_e], dim=0)
+            user = interaction[self.TARGET_USER_ID]
+            if self.mode == 'overlap_users':
+                user_e = torch.empty(user.shape[0], self.target_latent_dim)
+                all_item_e = self.item_embedding.weight[:self.target_num_items]
+                overlap_idx = user < self.overlapped_num_users
+                user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
+            else:
+                user_e = self.target_user_embedding(user)
+                overlap_item_e = self.mapping(self.source_item_embedding.weight[:self.overlapped_num_items])
+                target_item_e = self.target_item_embedding.weight[self.overlapped_num_items:self.target_num_items]
+                all_item_e = torch.cat([overlap_item_e, target_item_e], dim=0)
 
         score = torch.matmul(user_e, all_item_e.transpose(0, 1))
         return score.view(-1)
