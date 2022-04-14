@@ -35,5 +35,5 @@ class CrossDomainDataLoaderState(Enum):
     BOTH = 1
     SOURCE = 2
     TARGET = 3
-    MAP = 4
+    OVERLAP = 4
 

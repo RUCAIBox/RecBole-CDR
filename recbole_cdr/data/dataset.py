@@ -233,6 +233,48 @@ class CrossDomainSingleDataset(Dataset):
 
         return torch.LongTensor(history_matrix), torch.FloatTensor(history_value), torch.LongTensor(history_len)
 
+    def split_train_valid(self):
+        self._change_feat_format()
+
+        if self.benchmark_filename_list is not None:
+            cumsum = list(np.cumsum(self.file_size_list))
+            datasets = [self.copy(self.inter_feat[start:end]) for start, end in zip([0] + cumsum[:-1], cumsum)]
+            return datasets
+
+        # ordering
+        ordering_args = self.config['eval_args']['order']
+        if ordering_args == 'RO':
+            self.shuffle()
+        elif ordering_args == 'TO':
+            self.sort(by=self.time_field)
+        else:
+            raise NotImplementedError(f'The ordering_method [{ordering_args}] has not been implemented.')
+
+        # splitting & grouping
+        split_args = self.config['eval_args']['split_valid']
+        if split_args is None:
+            raise ValueError('The split_args in eval_args should not be None.')
+        if not isinstance(split_args, dict):
+            raise ValueError(f'The split_args [{split_args}] should be a dict.')
+
+        split_mode = list(split_args.keys())[0]
+        assert len(split_args.keys()) == 1
+        group_by = self.config['eval_args']['group_by']
+        if split_mode == 'RS':
+            if not isinstance(split_args['RS'], list):
+                raise ValueError(f'The value of "RS" [{split_args}] should be a list.')
+            if group_by is None or group_by.lower() == 'none':
+                datasets = self.split_by_ratio(split_args['RS'], group_by=None)
+            elif group_by == 'user':
+                datasets = self.split_by_ratio(split_args['RS'], group_by=self.uid_field)
+            else:
+                raise NotImplementedError(f'The grouping method [{group_by}] has not been implemented.')
+        else:
+            raise NotImplementedError(f'The splitting_method [{split_mode}] has not been implemented.')
+
+        return datasets
+
+
 class CrossDomainDataset():
     """:class:`CrossDomainDataset` is based on :class:`~recbole_cdr.data.dataset.dataset.Dataset`,
     and load both `SourceDataset` and `TargetDataset` additionally.
@@ -251,7 +293,7 @@ class CrossDomainDataset():
         assert 'source_domain' in config and 'target_domain' in config
         self.config = config
         self.logger = getLogger()
-        self.require_map = config['require_map']
+        self.train_args = config['train_args']
         self.logger.debug(set_color('Source Domain', 'blue'))
         source_config = config.update(config['source_domain'])
         self.source_domain_dataset = CrossDomainSingleDataset(source_config, domain='source')
@@ -280,6 +322,11 @@ class CrossDomainDataset():
         # other data process
         self.source_domain_dataset.data_process_after_remap()
         self.target_domain_dataset.data_process_after_remap()
+        if self.num_overlap_user > 1:
+            self.overlap_dataset = CrossDomainOverlapDataset(config, self.num_overlap_user)
+        else:
+            self.overlap_dataset = CrossDomainOverlapDataset(config, self.num_overlap_item)
+        self.overlap_id_field = self.overlap_dataset.overlap_id_field
 
     def calculate_user_item_from_both_domain(self):
         source_user_set = set(self.source_domain_dataset.inter_feat[self.source_domain_dataset.uid_field])
@@ -462,59 +509,33 @@ class CrossDomainDataset():
         df.columns = columns
         return df
 
-    def build_map_dataset(self):
-        if self.num_overlap_user > 1:
-            num_overlap = self.num_overlap_user
-        else:
-            num_overlap = self.num_overlap_item
-
-        map_dataset = torch.randperm(num_overlap)
-
-        return map_dataset
-
     def build(self):
         """Processing dataset in target domain according to evaluation setting, including Group, Order and Split.
         See :class:`~recbole_cdr.config.eval_setting.EvalSetting` for details.
-
         Returns:
             list: List of built :class:`Dataset`.
         """
-        if self.require_map:
-            target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
-                = self.target_domain_dataset.build()
 
-            source_domain_train_dataset, source_domain_valid_dataset, source_domain_test_dataset \
-                = self.source_domain_dataset.build()
-
-            self.map_dataset = self.build_map_dataset()
-
-            return [source_domain_train_dataset, source_domain_valid_dataset, source_domain_test_dataset,
-                    target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset]
-        else:
-            target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
-                = self.target_domain_dataset.build()
-
-            source_domain_train_dataset = self.source_domain_dataset
-            source_domain_train_dataset._change_feat_format()
-
-            return [source_domain_train_dataset, None, None,
-                    target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset]
-
-    '''def build(self):
-        """Processing dataset in target domain according to evaluation setting, including Group, Order and Split.
-        See :class:`~recbole_cdr.config.eval_setting.EvalSetting` for details.
-
-        Returns:
-            list: List of built :class:`Dataset`.
-        """
         target_domain_train_dataset, target_domain_valid_dataset, target_domain_test_dataset \
             = self.target_domain_dataset.build()
 
-        source_domain_train_dataset = self.source_domain_dataset
-        source_domain_train_dataset._change_feat_format()
+        self.overlap_dataset._change_feat_format()
 
-        return [source_domain_train_dataset, target_domain_train_dataset,
-                target_domain_valid_dataset, target_domain_test_dataset]'''
+        source_split_flag = False
+        for train_arg in self.train_args:
+            if 'SOURCE' in train_arg:
+                source_split_flag = True
+                break
+        if not source_split_flag:
+            source_domain_train_dataset = self.source_domain_dataset
+            source_domain_train_dataset._change_feat_format()
+
+            return [source_domain_train_dataset, None, target_domain_train_dataset,
+                    target_domain_valid_dataset, target_domain_test_dataset]
+        else:
+            source_domain_train_dataset, source_domain_valid_dataset = self.source_domain_dataset.split_train_valid()
+            return [source_domain_train_dataset, source_domain_valid_dataset, target_domain_train_dataset,
+                    target_domain_valid_dataset, target_domain_test_dataset]
 
     def inter_matrix(self, form='coo', value_field=None, domain='source'):
         """Get sparse matrix that describe interactions between user_id and item_id.
@@ -601,3 +622,50 @@ class CrossDomainDataset():
         else:
             return self.target_domain_dataset.get_history_matrix(self.num_total_user, self.num_total_item,
                                                                  row='user', value_field=value_field)
+
+
+class CrossDomainOverlapDataset(Dataset):
+
+    def __init__(self, config, num_overlap):
+        self.num_overlap = num_overlap
+        super(CrossDomainOverlapDataset, self).__init__(config)
+
+    def _from_scratch(self):
+        self.logger.debug(set_color(f'Loading {self.__class__} from scratch.', 'green'))
+
+        self._get_preset()
+        self._load_data(self.dataset_name, self.dataset_path)
+        self._data_processing()
+
+    def _build_feat_name_list(self):
+        feat_name_list = ['overlap_feat']
+        return feat_name_list
+
+    def _data_processing(self):
+        self.feat_name_list = self._build_feat_name_list()
+
+    def __len__(self):
+        return self.num_overlap
+
+    def shuffle(self):
+        self.overlap_feat.shuffle()
+
+    def _load_data(self, token, dataset_path):
+        field = 'overlap'
+        ftype = FeatureType.TOKEN
+        self.overlap_id_field = field
+        self.field2type[field] = ftype
+        self.overlap_feat = {}
+        overlap_data = np.arange(self.num_overlap)
+        np.random.shuffle(overlap_data)
+        self.overlap_feat[field] = pd.DataFrame(np.array(overlap_data))
+
+    def __getitem__(self, index, join=True):
+        df = self.overlap_feat[index]
+        return df
+
+    def __str__(self):
+        info = [set_color(self.dataset_name, 'pink')]
+        info.append(set_color('The number of overlap idx', 'blue') + f': {self.num_overlap}')
+        info.append(set_color('Remain Fields', 'blue') + f': {list(self.field2type)}')
+        return '\n'.join(info)
