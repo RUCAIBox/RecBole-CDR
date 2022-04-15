@@ -28,10 +28,12 @@ clip_grad_norm: ~
 weight_decay: 0.0
 loss_decimal_place: 4
 require_pow: False
+train_args: ["BOTH:300"]
 
 # evaluation settings
 eval_args: 
   split: {'RS':[0.8,0.1,0.1]}
+  split_valid: {'RS':[0.8,0.2]}
   group_by: user
   order: RO
   mode: full

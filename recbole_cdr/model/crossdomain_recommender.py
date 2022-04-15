@@ -42,5 +42,10 @@ class CrossDomainRecommender(AbstractRecommender):
         self.overlapped_num_users = dataset.num_overlap_user
         self.overlapped_num_items = dataset.num_overlap_item
 
+        self.OVERLAP_ID = dataset.overlap_id_field
+
         # load parameters info
         self.device = config['device']
+
+    def set_phase(self, phase):
+        pass

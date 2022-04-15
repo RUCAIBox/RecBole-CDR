@@ -1,0 +1,9 @@
+latent_factor_model: MF
+loss_type: CE
+source_embedding_size: 64
+target_embedding_size: 64
+reg_weight: 1e-2
+mapping_function: non_linear
+mlp_hidden_size: [128]
+train_args: ["SOURCE:300","TARGET:300","OVERLAP:300"]
+overlap_batch_size: 100
