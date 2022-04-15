@@ -183,9 +183,13 @@ class CrsssDomainSourceSampler(AbstractSampler):
             distribution (str, optional): Distribution of the negative entities. Defaults to 'uniform'.
         """
 
-    def __init__(self, dataset, distribution='uniform'):
+    def __init__(self, phases, dataset, built_datasets, distribution='uniform'):
+        if not isinstance(phases, list):
+            phases = [phases]
 
+        self.phases = phases
         self.dataset = dataset.source_domain_dataset
+        self.datasets = built_datasets
 
         self.uid_field = self.dataset.uid_field
         self.iid_field = self.dataset.iid_field
@@ -215,9 +219,14 @@ class CrsssDomainSourceSampler(AbstractSampler):
     def _uni_sampling(self, sample_num):
         return np.random.choice(self.item_id_list, size=sample_num, replace=True)
 
-    def _get_candidates_list(self):
+    '''def _get_candidates_list(self):
         candidates_list = []
         candidates_list.extend(self.dataset.inter_feat[self.iid_field].numpy())
+        return candidates_list'''
+    def _get_candidates_list(self):
+        candidates_list = []
+        for dataset in self.datasets:
+            candidates_list.extend(dataset.inter_feat[self.iid_field].numpy())
         return candidates_list
 
     def get_used_ids(self):
@@ -226,12 +235,15 @@ class CrsssDomainSourceSampler(AbstractSampler):
             dict: Used item_ids is the same as positive item_ids.
             Key is phase, and value is a numpy.ndarray which index is user_id, and element is a set of item_ids.
         """
-        used_item_id = np.array([set() for _ in range(self.total_user_num)])
+        used_item_id = dict()
+        last = [set() for _ in range(self.total_user_num)]
+        for phase in self.phases:
+            cur = np.array([set(s) for s in last])
+            for uid, iid in zip(self.dataset.inter_feat[self.uid_field].numpy(), self.dataset.inter_feat[self.iid_field].numpy()):
+                cur[uid].add(iid)
+            last = used_item_id[phase] = cur
 
-        for uid, iid in zip(self.dataset.inter_feat[self.uid_field].numpy(), self.dataset.inter_feat[self.iid_field].numpy()):
-            used_item_id[uid].add(iid)
-
-        for used_item_set in used_item_id:
+        for used_item_set in used_item_id[self.phases[-1]]:
             if len(used_item_set) + 1 == self.item_num:  # [pad] is a item.
                 raise ValueError(
                     'Some users have interacted with all items, '
@@ -239,6 +251,23 @@ class CrsssDomainSourceSampler(AbstractSampler):
                     'Please set `user_inter_num_interval` to filter those users.'
                 )
         return used_item_id
+
+    def set_phase(self, phase):
+        """Get the sampler of corresponding phase.
+
+        Args:
+            phase (str): The phase of new sampler.
+
+        Returns:
+            Sampler: the copy of this sampler, :attr:`phase` is set the same as input phase, and :attr:`used_ids`
+            is set to the value of corresponding phase.
+        """
+        if phase not in self.phases:
+            raise ValueError(f'Phase [{phase}] not exist.')
+        new_sampler = copy.copy(self)
+        new_sampler.phase = phase
+        new_sampler.used_ids = new_sampler.used_ids[phase]
+        return new_sampler
 
     def sample_by_user_ids(self, user_ids, item_ids, num):
         """Sampling by user_ids.
