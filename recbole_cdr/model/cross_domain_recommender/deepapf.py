@@ -78,8 +78,7 @@ class DeepAPF(CrossDomainRecommender):
             alpha_share = alpha_share.masked_fill(mask_tensor, value=torch.tensor(-1e31))
 
             alpha = torch.cat([alpha_share, alpha_source_only], dim=1)
-            alpha = alpha / torch.pow(torch.exp(alpha).sum(dim=1, keepdim=True), self.beta)
-            alpha = alpha.unsqueeze(1)
+            alpha = F.softmax(alpha, dim=1).unsqueeze(1)
 
             user_embedding = alpha * torch.cat([share_user_embedding.unsqueeze(2),
                                                 source_only_user_embedding.unsqueeze(2)], dim=2)
@@ -94,13 +93,12 @@ class DeepAPF(CrossDomainRecommender):
             mask_tensor = (item > self.overlapped_num_items).unsqueeze(-1)
 
             alpha_share = self.item_mlp(torch.mul(share_item_embedding, user_embedding))
-            alpha_source_only = self.user_mlp(torch.mul(source_only_item_embedding, user_embedding))
+            alpha_source_only = self.item_mlp(torch.mul(source_only_item_embedding, user_embedding))
 
             alpha_share = alpha_share.masked_fill(mask_tensor, value=torch.tensor(-1e31))
 
             alpha = torch.cat([alpha_share, alpha_source_only], dim=1)
-            alpha = alpha / torch.pow(torch.exp(alpha).sum(dim=1, keepdim=True), self.beta)
-            alpha = alpha.unsqueeze(1)
+            alpha = F.softmax(alpha, dim=1).unsqueeze(1)
 
             item_embedding = alpha * torch.cat([share_item_embedding.unsqueeze(2),
                                                 source_only_item_embedding.unsqueeze(2)], dim=2)
@@ -121,8 +119,7 @@ class DeepAPF(CrossDomainRecommender):
             alpha_share = alpha_share.masked_fill(mask_tensor, value=torch.tensor(-1e31))
 
             alpha = torch.cat([alpha_share, alpha_target_only], dim=1)
-            alpha = alpha / torch.pow(torch.exp(alpha).sum(dim=1, keepdim=True), self.beta)
-            alpha = alpha.unsqueeze(1)
+            alpha = F.softmax(alpha, dim=1).unsqueeze(1)
 
             user_embedding = alpha * torch.cat([share_user_embedding.unsqueeze(2),
                                                 target_only_user_embedding.unsqueeze(2)], dim=2)
@@ -137,13 +134,12 @@ class DeepAPF(CrossDomainRecommender):
             mask_tensor = (item > self.overlapped_num_items).unsqueeze(-1)
 
             alpha_share = self.item_mlp(torch.mul(share_item_embedding, user_embedding))
-            alpha_target_only = self.user_mlp(torch.mul(target_only_item_embedding, user_embedding))
+            alpha_target_only = self.item_mlp(torch.mul(target_only_item_embedding, user_embedding))
 
             alpha_share = alpha_share.masked_fill(mask_tensor, value=torch.tensor(-1e31))
 
             alpha = torch.cat([alpha_share, alpha_target_only], dim=1)
-            alpha = alpha / torch.pow(torch.exp(alpha).sum(dim=1, keepdim=True), self.beta)
-            alpha = alpha.unsqueeze(1)
+            alpha = F.softmax(alpha, dim=1).unsqueeze(1)
 
             item_embedding = alpha * torch.cat([share_item_embedding.unsqueeze(2),
                                                 target_only_item_embedding.unsqueeze(2)], dim=2)
