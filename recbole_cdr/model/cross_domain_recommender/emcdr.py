@@ -190,31 +190,37 @@ class EMCDR(CrossDomainRecommender):
             user = interaction[self.TARGET_USER_ID]
             item = interaction[self.TARGET_ITEM_ID]
             if self.mode == 'overlap_users':
+                repeat_user = user.repeat(self.source_latent_dim, 1).transpose(0, 1)
+                user_e = torch.where(repeat_user < self.overlapped_num_users, self.mapping(self.source_user_embedding(user)),
+                                     self.target_user_embedding(user))
                 item_e = self.target_item_embedding(item)
-                user_e = torch.empty_like(item_e)
-                overlap_idx = user < self.overlapped_num_users
-                user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
             else:
                 user_e = self.target_user_embedding(user)
-                item_e = torch.empty_like(user_e)
-                overlap_idx = item < self.overlapped_num_items
-                item_e[overlap_idx] = self.mapping(self.source_item_embedding(item)[overlap_idx])
+                repeat_item = item.repeat(self.source_latent_dim, 1).transpose(0, 1)
+                item_e = torch.where(repeat_item < self.overlapped_num_items, self.mapping(self.source_item_embedding(item)),
+                                     self.target_item_embedding(item))
 
-                score = torch.mul(user_e, item_e).sum(dim=1)
+            score = torch.mul(user_e, item_e).sum(dim=1)
         return score
 
     def full_sort_predict(self, interaction):
         if self.phase == 'SOURCE':
             user = interaction[self.SOURCE_USER_ID]
-            user_e = torch.empty(user.shape[0], self.source_latent_dim)
+            user_e = self.source_user_embedding(user)
             overlap_item_e = self.source_item_embedding.weight[:self.overlapped_num_items]
             source_item_e = self.source_item_embedding.weight[self.target_num_items:]
             all_item_e = torch.cat([overlap_item_e, source_item_e], dim=0)
+        elif self.phase == 'TARGET':
+            user = interaction[self.TARGET_USER_ID]
+            user_e = self.target_user_embedding(user)
+            all_item_e = self.target_item_embedding.weight[:self.target_num_items]
         else:
             user = interaction[self.TARGET_USER_ID]
             if self.mode == 'overlap_users':
-                user_e = torch.empty(user.shape[0], self.target_latent_dim)
-                all_item_e = self.item_embedding.weight[:self.target_num_items]
+                repeat_user = user.repeat(self.source_latent_dim, 1).transpose(0, 1)
+                user_e = torch.where(repeat_user < self.overlapped_num_users, self.mapping(self.source_user_embedding(user)),
+                                     self.target_user_embedding(user))
+                all_item_e = self.target_item_embedding.weight[:self.target_num_items]
                 overlap_idx = user < self.overlapped_num_users
                 user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
             else:
