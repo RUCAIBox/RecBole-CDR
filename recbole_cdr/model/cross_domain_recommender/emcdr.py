@@ -62,11 +62,11 @@ class EMCDR(CrossDomainRecommender):
             self.mapping = self.mlp_layers(mlp_layers_dim)
 
         # define layers and loss
-        self.source_user_embedding = torch.nn.Embedding(num_embeddings=self.total_num_users, embedding_dim=self.source_latent_dim)
-        self.source_item_embedding = torch.nn.Embedding(num_embeddings=self.total_num_items, embedding_dim=self.source_latent_dim)
+        self.source_user_embedding = torch.nn.Embedding(self.total_num_users, self.source_latent_dim)
+        self.source_item_embedding = torch.nn.Embedding(self.total_num_items, self.source_latent_dim)
 
-        self.target_user_embedding = torch.nn.Embedding(num_embeddings=self.total_num_users, embedding_dim=self.target_latent_dim)
-        self.target_item_embedding = torch.nn.Embedding(num_embeddings=self.total_num_items, embedding_dim=self.target_latent_dim)
+        self.target_user_embedding = torch.nn.Embedding(self.total_num_users, self.target_latent_dim)
+        self.target_item_embedding = torch.nn.Embedding(self.total_num_items, self.target_latent_dim)
 
         with torch.no_grad():
             self.source_user_embedding.weight[self.overlapped_num_users: self.target_num_users].fill_(0)
@@ -221,8 +221,8 @@ class EMCDR(CrossDomainRecommender):
                 user_e = torch.where(repeat_user < self.overlapped_num_users, self.mapping(self.source_user_embedding(user)),
                                      self.target_user_embedding(user))
                 all_item_e = self.target_item_embedding.weight[:self.target_num_items]
-                overlap_idx = user < self.overlapped_num_users
-                user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
+                #overlap_idx = user < self.overlapped_num_users
+                #user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
             else:
                 user_e = self.target_user_embedding(user)
                 overlap_item_e = self.mapping(self.source_item_embedding.weight[:self.overlapped_num_items])
