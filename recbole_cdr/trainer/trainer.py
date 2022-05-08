@@ -13,7 +13,7 @@ recbole_cdr.trainer.trainer
 
 import numpy as np
 from recbole.trainer import Trainer
-from recbole_cdr.utils import CrossDomainDataLoaderState
+from recbole_cdr.utils import train_mode2state
 
 
 class CrossDomainTrainer(Trainer):
@@ -23,23 +23,9 @@ class CrossDomainTrainer(Trainer):
 
     def __init__(self, config, model):
         super(CrossDomainTrainer, self).__init__(config, model)
-        self.train_args = config['train_args']
-        self.config_step = config['eval_step']
-        self.scheme_list = ['BOTH', 'SOURCE', 'TARGET', 'OVERLAP']
-        self.state_list = [CrossDomainDataLoaderState.BOTH, CrossDomainDataLoaderState.SOURCE, CrossDomainDataLoaderState.TARGET, CrossDomainDataLoaderState.OVERLAP]
-        self.scheme2state = {}
-        for scheme, state in zip(self.scheme_list, self.state_list):
-            self.scheme2state[scheme] = state
-
-        self.train_scheme = []
-        self.train_epochs = []
-        self.split_valid_flag = False
-        for train_arg in self.train_args:
-            train_scheme, train_epoch = train_arg.split(':')
-            self.train_scheme.append(train_scheme)
-            self.train_epochs.append(train_epoch)
-            if train_scheme == 'SOURCE':
-                self.split_valid_flag = True
+        self.train_scheme = config['train_modes']
+        self.train_epochs = config['epoch_num']
+        self.split_valid_flag = config['source_split']
 
     def _reinit(self, phase):
         self.start_epoch = 0
@@ -50,13 +36,14 @@ class CrossDomainTrainer(Trainer):
         self.tot_item_num = None
         self.train_loss_dict = dict()
         self.epochs = int(self.train_epochs[phase])
-        self.eval_step = min(self.config_step, self.epochs)
+        self.eval_step = min(self.config['eval_step'], self.epochs)
 
     def fit(self, train_data, valid_data=None, verbose=True, saved=True, show_progress=False, callback_fn=None):
         for phase in range(len(self.train_scheme)):
             self._reinit(phase)
             scheme = self.train_scheme[phase]
-            state = self.scheme2state[scheme]
+            self.logger.info("Start training with {} mode".format(scheme))
+            state = train_mode2state[scheme]
             train_data.set_mode(state)
             self.model.set_phase(scheme)
             if self.split_valid_flag and valid_data is not None:

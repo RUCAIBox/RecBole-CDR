@@ -13,7 +13,7 @@ from recbole.config.configurator import Config
 from recbole.evaluator import metric_types, smaller_metrics
 from recbole.utils import EvaluatorType, ModelType, InputType
 
-from recbole_cdr.utils import get_model
+from recbole_cdr.utils import get_model, train_mode2state
 
 
 class CDRConfig(Config):
@@ -216,6 +216,20 @@ class CDRConfig(Config):
         if (self.final_config_dict['eval_args']['mode'] == 'full'
                 and self.final_config_dict['eval_type'] == EvaluatorType.VALUE):
             raise NotImplementedError('Full sort evaluation do not match value-based metrics!')
+
+        train_scheme = []
+        train_epochs = []
+        for train_arg in self.final_config_dict['train_epochs']:
+            scheme, epoch = train_arg.split(':')
+            if scheme not in train_mode2state:
+                raise ValueError(f"[{scheme}] is not a supported training mode.")
+            train_scheme.append(scheme)
+            train_epochs.append(epoch)
+        self.final_config_dict['train_modes'] = train_scheme
+        self.final_config_dict['epoch_num'] = train_epochs
+        source_split_flag = True if 'SOURCE' in train_scheme else False
+        self.final_config_dict['source_split'] = source_split_flag
+        self.final_config_dict['epochs'] = int(train_epochs[0])
 
     @staticmethod
     def _remove_domain_prefix(config_dict):

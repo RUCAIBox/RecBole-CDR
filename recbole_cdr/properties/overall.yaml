@@ -1,7 +1,7 @@
 # general
 gpu_id: 0
 use_gpu: True
-seed: 2020
+seed: 2022
 state: INFO
 reproducibility: True
 data_path: 'dataset/'
@@ -15,7 +15,7 @@ log_wandb: False
 wandb_project: 'recbole_cdr'
 
 # training settings
-epochs: 300
+train_epochs: ["BOTH:300"]
 train_batch_size: 2048
 learner: adam
 learning_rate: 0.001
@@ -28,7 +28,6 @@ clip_grad_norm: ~
 weight_decay: 0.0
 loss_decimal_place: 4
 require_pow: False
-train_args: ["BOTH:300"]
 
 # evaluation settings
 eval_args: 
