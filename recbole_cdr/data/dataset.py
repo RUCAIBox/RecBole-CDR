@@ -293,7 +293,7 @@ class CrossDomainDataset():
         assert 'source_domain' in config and 'target_domain' in config
         self.config = config
         self.logger = getLogger()
-        self.train_args = config['train_args']
+        self.train_modes = config['train_modes']
         self.logger.debug(set_color('Source Domain', 'blue'))
         source_config = config.update(config['source_domain'])
         self.source_domain_dataset = CrossDomainSingleDataset(source_config, domain='source')
@@ -521,11 +521,8 @@ class CrossDomainDataset():
 
         self.overlap_dataset._change_feat_format()
 
-        source_split_flag = False
-        for train_arg in self.train_args:
-            if 'SOURCE' in train_arg:
-                source_split_flag = True
-                break
+        source_split_flag = self.config['source_split']
+
         if not source_split_flag:
             source_domain_train_dataset = self.source_domain_dataset
             source_domain_train_dataset._change_feat_format()

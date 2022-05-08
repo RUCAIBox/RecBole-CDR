@@ -30,6 +30,7 @@ class CrossDomainDataLoaderState(Enum):
     - ``BOTH``: Return both data in source domain and target domain.
     - ``SOURCE``: Only return the data in source domain.
     - ``TARGET``: Only return the data in target domain.
+    - ``OVERLAP``: Return the overlapped users or items.
     """
 
     BOTH = 1
@@ -37,3 +38,8 @@ class CrossDomainDataLoaderState(Enum):
     TARGET = 3
     OVERLAP = 4
 
+
+train_mode2state = {'BOTH': CrossDomainDataLoaderState.BOTH,
+                    'SOURCE': CrossDomainDataLoaderState.SOURCE,
+                    'TARGET': CrossDomainDataLoaderState.TARGET,
+                    'OVERLAP': CrossDomainDataLoaderState.OVERLAP}
