@@ -55,4 +55,5 @@ class CrossDomainTrainer(Trainer):
             else:
                 super().fit(train_data, valid_data, verbose, saved, show_progress, callback_fn)
 
+        self.model.set_phase('OVERLAP')
         return self.best_valid_score, self.best_valid_result
