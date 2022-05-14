@@ -16,7 +16,6 @@ import numpy as np
 import torch
 
 from recbole.data.interaction import Interaction
-from recbole.utils import ModelType
 from recbole.data.dataloader.abstract_dataloader import AbstractDataLoader
 from recbole.data.dataloader.general_dataloader import TrainDataLoader, FullSortEvalDataLoader
 
@@ -24,6 +23,14 @@ from recbole_cdr.utils import CrossDomainDataLoaderState
 
 
 class OverlapDataloader(AbstractDataLoader):
+    """:class:`OverlapDataloader` is a dataloader for training algorithms with only overlapped users or items.
+
+    Args:
+        config (Config): The config of dataloader.
+        dataset (Dataset): The dataset of dataloader.
+        sampler (Sampler): The sampler of dataloader in source domain.
+        shuffle (bool, optional): Whether the dataloader will be shuffled after a round. Defaults to ``False``.
+    """
     def __init__(self, config, dataset, sampler=None, shuffle=False):
         super().__init__(config, dataset, sampler, shuffle=shuffle)
 
@@ -54,7 +61,7 @@ class CrossDomainDataloader(AbstractDataLoader):
         source_sampler (Sampler): The sampler of dataloader in source domain.
         target_dataset (Dataset): The dataset of dataloader in target domain.
         target_sampler (Sampler): The sampler of dataloader in target domain.
-        shuffle (bool, optional): Whether the dataloader will be shuffle after a round. Defaults to ``False``.
+        shuffle (bool, optional): Whether the dataloader will be shuffled after a round. Defaults to ``False``.
     """
 
     def __init__(self, config, dataset, source_dataset, source_sampler, target_dataset, target_sampler,
@@ -180,14 +187,14 @@ class CrossDomainDataloader(AbstractDataLoader):
 
 
 class CrossDomainFullSortEvalDataLoader(FullSortEvalDataLoader):
-    """:class:`FullSortEvalDataLoader` is a dataloader for full-sort evaluation. In order to speed up calculation,
+    """:class:`CrossdomainFullSortEvalDataLoader` is a dataloader for full-sort evaluation. In order to speed up calculation,
     this dataloader would only return then user part of interactions, positive items and used items.
     It would not return negative items.
 
     Args:
         config (Config): The config of dataloader.
-        dataset (CrossDomainDataset): The dataset of dataloader.
-        source_dataset(CrossDomainSingleDataset): The single-domain dataset of dataloader
+        dataset (CrossDomainDataset): The dataset from both domain.
+        source_dataset(CrossDomainSingleDataset): The dataset that only from source domain.
         sampler (Sampler): The sampler of dataloader.
         shuffle (bool, optional): Whether the dataloader will be shuffle after a round. Defaults to ``False``.
     """
@@ -195,31 +202,30 @@ class CrossDomainFullSortEvalDataLoader(FullSortEvalDataLoader):
     def __init__(self, config, dataset, source_dataset, sampler, shuffle=False):
         self.uid_field = source_dataset.uid_field
         self.iid_field = source_dataset.iid_field
-        self.is_sequential = config['MODEL_TYPE'] == ModelType.SEQUENTIAL
-        if not self.is_sequential:
-            user_num = dataset.num_total_user
-            self.overlap_item_num = dataset.num_overlap_item
-            self.revoke_item_num = dataset.num_target_only_item
-            self.uid_list = []
-            self.uid2items_num = np.zeros(user_num, dtype=np.int64)
-            self.uid2positive_item = np.array([None] * user_num)
-            self.uid2history_item = np.array([None] * user_num)
 
-            source_dataset.sort(by=self.uid_field, ascending=True)
-            last_uid = None
-            positive_item = set()
-            uid2used_item = sampler.used_ids
-            for uid, iid in zip(source_dataset.inter_feat[self.uid_field].numpy(),
-                                source_dataset.inter_feat[self.iid_field].numpy()):
-                if uid != last_uid:
-                    self._set_user_property(last_uid, uid2used_item[last_uid], positive_item)
-                    last_uid = uid
-                    self.uid_list.append(uid)
-                    positive_item = set()
-                positive_item.add(iid)
-            self._set_user_property(last_uid, uid2used_item[last_uid], positive_item)
-            self.uid_list = torch.tensor(self.uid_list, dtype=torch.int64)
-            self.user_df = source_dataset.join(Interaction({self.uid_field: self.uid_list}))
+        user_num = dataset.num_total_user
+        self.overlap_item_num = dataset.num_overlap_item
+        self.revoke_item_num = dataset.num_target_only_item
+        self.uid_list = []
+        self.uid2items_num = np.zeros(user_num, dtype=np.int64)
+        self.uid2positive_item = np.array([None] * user_num)
+        self.uid2history_item = np.array([None] * user_num)
+
+        source_dataset.sort(by=self.uid_field, ascending=True)
+        last_uid = None
+        positive_item = set()
+        uid2used_item = sampler.used_ids
+        for uid, iid in zip(source_dataset.inter_feat[self.uid_field].numpy(),
+                            source_dataset.inter_feat[self.iid_field].numpy()):
+            if uid != last_uid:
+                self._set_user_property(last_uid, uid2used_item[last_uid], positive_item)
+                last_uid = uid
+                self.uid_list.append(uid)
+                positive_item = set()
+            positive_item.add(iid)
+        self._set_user_property(last_uid, uid2used_item[last_uid], positive_item)
+        self.uid_list = torch.tensor(self.uid_list, dtype=torch.int64)
+        self.user_df = source_dataset.join(Interaction({self.uid_field: self.uid_list}))
 
         self.config = config
         self.logger = getLogger()

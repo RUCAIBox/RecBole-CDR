@@ -17,8 +17,8 @@ from recbole_cdr.utils import train_mode2state
 
 
 class CrossDomainTrainer(Trainer):
-    r"""
-
+    r"""Trainer for training cross-domain models. It contains four training mode: SOURCE, TARGET, BOTH, OVERLAP
+    which can be set by the parameter of `train_epochs`
     """
 
     def __init__(self, config, model):
@@ -28,6 +28,8 @@ class CrossDomainTrainer(Trainer):
         self.split_valid_flag = config['source_split']
 
     def _reinit(self, phase):
+        """Reset the parameters when start a new training phase.
+        """
         self.start_epoch = 0
         self.cur_step = 0
         self.best_valid_score = -np.inf if self.valid_metric_bigger else np.inf
@@ -39,6 +41,21 @@ class CrossDomainTrainer(Trainer):
         self.eval_step = min(self.config['eval_step'], self.epochs)
 
     def fit(self, train_data, valid_data=None, verbose=True, saved=True, show_progress=False, callback_fn=None):
+        r"""Train the model based on the train data and the valid data.
+
+            Args:
+                train_data (DataLoader): the train data
+                valid_data (DataLoader, optional): the valid data, default: None.
+                                                    If it's None, the early_stopping is invalid.
+                verbose (bool, optional): whether to write training and evaluation information to logger, default: True
+                saved (bool, optional): whether to save the model parameters, default: True
+                show_progress (bool): Show the progress of training epoch and evaluate epoch. Defaults to ``False``.
+                callback_fn (callable): Optional callback function executed at end of epoch.
+                                        Includes (epoch_idx, valid_score) input arguments.
+
+            Returns:
+                    (float, dict): best valid score and best valid result. If valid_data is None, it returns (-1, None)
+        """
         for phase in range(len(self.train_scheme)):
             self._reinit(phase)
             scheme = self.train_scheme[phase]

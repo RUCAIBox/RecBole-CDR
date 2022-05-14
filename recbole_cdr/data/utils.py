@@ -15,13 +15,13 @@ import importlib
 import os
 import pickle
 
-from recbole.data.dataloader import NegSampleEvalDataLoader, FullSortEvalDataLoader
-from recbole.data.utils import load_split_dataloaders, save_split_dataloaders, create_samplers, getLogger
+from recbole.data.dataloader import NegSampleEvalDataLoader
+from recbole.data.utils import load_split_dataloaders, save_split_dataloaders, create_samplers
 from recbole.utils import set_color
 from recbole.utils.argument_list import dataset_arguments
 
 from recbole_cdr.data.dataloader import *
-from recbole_cdr.sampler import CrsssDomainSourceSampler
+from recbole_cdr.sampler import CrossDomainSourceSampler
 from recbole_cdr.utils import ModelType
 
 
@@ -32,7 +32,7 @@ def create_dataset(config):
     It will return the saved dataset in :attr:`config['dataset_save_path']`.
 
     Args:
-        config (Config): An instance object of Config, used to record parameter information.
+        config (CDRConfig): An instance object of Config, used to record parameter information.
 
     Returns:
         Dataset: Constructed dataset.
@@ -75,8 +75,8 @@ def data_preparation(config, dataset):
         If we can load split dataloaders by :meth:`load_split_dataloaders`, we will not create new split dataloaders.
 
     Args:
-        config (Config): An instance object of Config, used to record parameter information.
-        dataset (Dataset): An instance object of Dataset, which contains all interaction records.
+        config (CDRConfig): An instance object of Config, used to record parameter information.
+        dataset (CrossDomainDataset): An instance object of Dataset, which contains all interaction records.
 
     Returns:
         tuple:
@@ -103,7 +103,7 @@ def data_preparation(config, dataset):
 
             valid_data = (source_valid_data, target_valid_data)
         else:
-            source_train_sampler = CrsssDomainSourceSampler('train', dataset, config['train_neg_sample_args']['distribution']).set_phase('train')
+            source_train_sampler = CrossDomainSourceSampler('train', dataset, config['train_neg_sample_args']['distribution']).set_phase('train')
             valid_data = get_dataloader(config, 'evaluation', 'target')(config, target_valid_dataset, target_valid_sampler, shuffle=False)
 
         train_data = get_dataloader(config, 'train', 'target')(config, dataset, source_train_dataset, source_train_sampler,
@@ -171,10 +171,10 @@ def create_source_samplers(config, dataset, built_datasets):
     train_neg_sample_args = config['train_neg_sample_args']
     eval_neg_sample_args = config['eval_neg_sample_args']
 
-    sampler = CrsssDomainSourceSampler(phases, dataset, built_datasets, train_neg_sample_args['distribution'])
+    sampler = CrossDomainSourceSampler(phases, dataset, built_datasets, train_neg_sample_args['distribution'])
     train_sampler = sampler.set_phase('train')
 
-    sampler = CrsssDomainSourceSampler(phases, dataset, built_datasets, eval_neg_sample_args['distribution'])
+    sampler = CrossDomainSourceSampler(phases, dataset, built_datasets, eval_neg_sample_args['distribution'])
     valid_sampler = sampler.set_phase('valid')
 
     return train_sampler, valid_sampler

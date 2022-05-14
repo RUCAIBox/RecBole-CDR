@@ -278,4 +278,3 @@ class BiTGCF(CrossDomainRecommender):
         if self.target_restore_user_e is None or self.target_restore_item_e is None:
             _, _, self.target_restore_user_e, self.target_restore_item_e = self.forward()
         return self.target_restore_user_e, self.target_restore_item_e
-

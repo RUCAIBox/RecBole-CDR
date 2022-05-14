@@ -12,8 +12,8 @@ from recbole_cdr.utils import ModelType
 
 
 class CrossDomainRecommender(AbstractRecommender):
-    """This is a abstract general recommender. All the general model should implement this class.
-    The base general recommender class provide the basic dataset and parameters information.
+    """This is a abstract cross-domain recommender. All the cross-domain model should implement this class.
+    The base cross-domain recommender class provide the basic dataset and parameters information.
     """
 
     type = ModelType.CROSSDOMAIN

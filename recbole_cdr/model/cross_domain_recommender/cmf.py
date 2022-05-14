@@ -21,8 +21,9 @@ from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class CMF(CrossDomainRecommender):
-    r"""
-
+    r""" CMF jointly factorize the interaction matrix from both domain
+        with mapping the same user (or item) to one vector.
+        In this implementation, we set alpha to control the loss from two domains.
     """
     input_type = InputType.POINTWISE
 

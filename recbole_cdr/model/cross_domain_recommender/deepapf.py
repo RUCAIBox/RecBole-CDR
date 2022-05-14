@@ -21,7 +21,8 @@ from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class DeepAPF(CrossDomainRecommender):
-    r""" We extend the basic DeepAPF model in a symmetrical way to support those datasets that have overlapped items.
+    r"""It decomposes the embedding into common part and specific part with attention mechanism to merge.
+    We extend the basic DeepAPF model in a symmetrical way to support those datasets that have overlapped items.
 
     """
     input_type = InputType.POINTWISE
