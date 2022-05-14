@@ -52,11 +52,11 @@ class DTCDR(CrossDomainRecommender):
             self.target_user_embedding = nn.Embedding(self.total_num_users, self.embedding_size)
             self.target_item_embedding = nn.Embedding(self.total_num_items, self.embedding_size)
             with torch.no_grad():
-                self.target_user_embedding.weight[self.target_num_users:].fill_(0)
-                self.target_item_embedding.weight[self.target_num_items:].fill_(0)
+                self.target_user_embedding.weight[self.target_num_users:].fill_(np.NINF)
+                self.target_item_embedding.weight[self.target_num_items:].fill_(np.NINF)
 
-                self.source_user_embedding.weight[self.overlapped_num_users: self.target_num_users].fill_(0)
-                self.source_item_embedding.weight[self.overlapped_num_items: self.target_num_items].fill_(0)
+                self.source_user_embedding.weight[self.overlapped_num_users: self.target_num_users].fill_(np.NINF)
+                self.source_item_embedding.weight[self.overlapped_num_items: self.target_num_items].fill_(np.NINF)
 
             self.source_mlp_layers = MLPLayers([2 * self.embedding_size] + self.mlp_hidden_size, self.dropout_prob)
             self.source_mlp_layers.logger = None  # remove logger to use torch.save()
