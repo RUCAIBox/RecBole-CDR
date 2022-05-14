@@ -64,6 +64,7 @@ embedding_size: 64
 |--------------|--------|--------|---------------|----------|
 | Amazon-Books | 135109 | 115172 | 4042382       | 99.97%   |
 | Amazon-Movie | 26968  | 18563  | 762957        | 99.85%   |
+
 Number of Overlapped User: 5982
 
 Number of Overlapped Item: 0
