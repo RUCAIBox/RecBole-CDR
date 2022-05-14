@@ -64,6 +64,7 @@ embedding_size: 64
 |--------------|--------|--------|---------------|----------|
 | Douban-Book  | 18085  | 33067  | 809248        | 99.86%   |
 | Douban-Movie | 22041  | 25802  | 2552305       | 99.55%   |
+
 Number of Overlapped User: 15434
 
 Number of Overlapped Item: 0

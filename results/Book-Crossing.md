@@ -64,6 +64,7 @@ embedding_size: 64
 |---------------|--------|--------|---------------|----------|
 | Book-Crossing | 13581  | 153430 | 324049        | 99.98%   | 
 | Librarything  | 6783   | 9502   | 379908        | 99.31%   |
+
 Number of Overlapped User: 0
 
 Number of Overlapped Item: 2799
