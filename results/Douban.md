@@ -15,7 +15,6 @@
 field_separator: "\t"
 source_domain:
   dataset: DoubanBook
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: item_id
   RATING_FIELD: rating
@@ -32,7 +31,6 @@ source_domain:
 
 target_domain:
   dataset: DoubanMovie
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: item_id
   RATING_FIELD: rating

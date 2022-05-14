@@ -16,7 +16,6 @@ seed: 2022
 field_separator: "\t"
 source_domain:
   dataset: AmazonBooks
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: item_id
   RATING_FIELD: rating
@@ -33,7 +32,6 @@ source_domain:
 
 target_domain:
   dataset: AmazonMov
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: item_id
   RATING_FIELD: rating

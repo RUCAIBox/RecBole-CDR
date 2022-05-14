@@ -17,7 +17,6 @@ field_separator: "\t"
 item_link_file_path: ./datasets/Book-Crossing_Librarything.link
 source_domain:
   dataset: Book-Crossing
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: ISBN
   RATING_FIELD: rating
@@ -34,7 +33,6 @@ source_domain:
 
 target_domain:
   dataset: Librarything
-  data_path: 'datasets/'
   USER_ID_FIELD: user_id
   ITEM_ID_FIELD: book_name
   RATING_FIELD: rating
