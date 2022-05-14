@@ -1,1 +1,1 @@
-from recbole_cdr.sampler.crossdomain_sampler import AbstractSampler, CrsssDomainSourceSampler
+from recbole_cdr.sampler.crossdomain_sampler import AbstractSampler, CrossDomainSourceSampler

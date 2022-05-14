@@ -13,11 +13,12 @@ Reference:
 import torch
 import torch.nn as nn
 
-from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 from recbole.model.init import xavier_normal_initialization
 from recbole.model.loss import EmbLoss
 from recbole.model.loss import BPRLoss
 from recbole.utils import InputType
+
+from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class EMCDR(CrossDomainRecommender):
@@ -221,8 +222,6 @@ class EMCDR(CrossDomainRecommender):
                 user_e = torch.where(repeat_user < self.overlapped_num_users, self.mapping(self.source_user_embedding(user)),
                                      self.target_user_embedding(user))
                 all_item_e = self.target_item_embedding.weight[:self.target_num_items]
-                #overlap_idx = user < self.overlapped_num_users
-                #user_e[overlap_idx] = self.mapping(self.source_user_embedding(user)[overlap_idx])
             else:
                 user_e = self.target_user_embedding(user)
                 overlap_item_e = self.mapping(self.source_item_embedding.weight[:self.overlapped_num_items])

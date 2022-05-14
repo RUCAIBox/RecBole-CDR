@@ -47,12 +47,11 @@ class CDRConfig(Config):
     Finally the learning_rate is equal to 0.02.
     """
 
-    def __init__(self, model=None, dataset=None, config_file_list=None, config_dict=None):
+    def __init__(self, model=None, config_file_list=None, config_dict=None):
         """
         Args:
-            model (str/AbstractRecommender): the model name or the model class, default is None, if it is None, config
+            model (str/CrossDomainRecommender): the model name or the model class, default is None, if it is None, config
             will search the parameter 'model' from the external input as the model name or model class.
-            dataset (str): the dataset name, default is None, if it is None, config will search the parameter 'dataset'
             from the external input as the dataset name.
             config_file_list (list of str): the external config file, it allows multiple config files, default is None.
             config_dict (dict): the external parameter dictionaries, default is None.
@@ -67,7 +66,7 @@ class CDRConfig(Config):
         self.cmd_config_dict = self._remove_domain_prefix(self._load_cmd_line())
         self._merge_external_config_dict()
 
-        self.model, self.model_class, self.dataset = self._get_model_and_dataset(model, dataset)
+        self.model, self.model_class, self.dataset = self._get_model_and_dataset(model)
         self._load_internal_config_dict(self.model, self.model_class, self.dataset)
         self.final_config_dict = self._get_final_config_dict()
         self._set_default_parameters()
@@ -77,6 +76,9 @@ class CDRConfig(Config):
         self.dataset = self._check_cross_domain()
 
     def _check_cross_domain(self):
+        """r Check the parameters whether in the format of Cross-domain Recommendation and return the formatted dataset
+
+        """
         assert 'source_domain' in self.final_config_dict or 'target_domain' in self.final_config_dict
         try:
             source_dataset_name = self.final_config_dict['source_domain']['dataset']
@@ -112,7 +114,7 @@ class CDRConfig(Config):
                                              'target_domain': target_dataset_name}
         return self.final_config_dict['dataset']
 
-    def _get_model_and_dataset(self, model, dataset):
+    def _get_model_and_dataset(self, model, dataset=None):
 
         if model is None:
             try:
@@ -217,6 +219,7 @@ class CDRConfig(Config):
                 and self.final_config_dict['eval_type'] == EvaluatorType.VALUE):
             raise NotImplementedError('Full sort evaluation do not match value-based metrics!')
 
+        # training_mode args
         train_scheme = []
         train_epochs = []
         for train_arg in self.final_config_dict['train_epochs']:

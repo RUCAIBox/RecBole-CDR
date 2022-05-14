@@ -12,7 +12,6 @@ recbole_cdr.data.dataset
 """
 
 import os
-import copy
 from collections import ChainMap
 import torch
 
@@ -34,10 +33,6 @@ class CrossDomainSingleDataset(Dataset):
         """Data preprocessing, including:
 
         - Data filtering
-        - Remap ID
-        - Missing value imputation
-        - Normalization
-        - Preloading weights initialization
         """
         self.feat_name_list = self._build_feat_name_list()
         if self.benchmark_filename_list is None:
@@ -86,6 +81,14 @@ class CrossDomainSingleDataset(Dataset):
                 del d[key]
 
     def remap_user_item_id(self, uid_remap_dict, iid_remap_dict):
+        """Remap the ids of users or items in the two dataset.
+
+        Args:
+            uid_remap_dict (dict): The dict whose keys are the users' id in source domain
+                                    and values are users' id in target domain.
+            iid_remap_dict (dict): The dict whose keys are the items' id in source domain
+                                    and values are items' id in target domain.
+        """
 
         for alias in self.alias.values():
             if uid_remap_dict and self.uid_field in alias:
@@ -96,12 +99,18 @@ class CrossDomainSingleDataset(Dataset):
                 self._remap_fields(alias, iid_remap_dict)
 
     def remap_others_id(self):
-
+        """Remap the other data fields that share the ids with users or items.
+        """
         for field in self._rest_fields:
             remap_list = self._get_remap_list(np.array([field]))
             self._remap(remap_list)
 
     def _remap_fields(self, field_names, map_dict):
+        """Remap the ids in targeted fields
+        Args:
+            field_names (list of str): The list of field names.
+            map_dict (dict): The dict whose keys are the original ids and values are the new ids.
+        """
         for field_name in field_names:
             self.field2id_token[field_name] = list(map_dict.keys())
             self.field2token_id[field_name] = map_dict
@@ -113,6 +122,11 @@ class CrossDomainSingleDataset(Dataset):
                 self.user_feat[field_name] = self.item_feat[field_name].map(lambda x: map_dict.get(x, x))
 
     def data_process_after_remap(self):
+        """Data preprocessing, including:
+            - Missing value imputation
+            - Normalization
+            - Preloading weights initialization
+        """
         self._user_item_feat_preparation()
         self._fill_nan()
         self._set_label_by_threshold()
@@ -275,18 +289,16 @@ class CrossDomainSingleDataset(Dataset):
         return datasets
 
 
-class CrossDomainDataset():
-    """:class:`CrossDomainDataset` is based on :class:`~recbole_cdr.data.dataset.dataset.Dataset`,
+class CrossDomainDataset:
+    """:class:`CrossDomainDataset` is based on :class:`~recbole.data.dataset.dataset.Dataset`,
     and load both `SourceDataset` and `TargetDataset` additionally.
 
-    Users and items in both dataset are remapped together with specially.
+    Users and items in both dataset are remapped together.
     All users (or items) are remapped into three consecutive ID sections.
 
     - users (or items) that exist both in source dataset and target dataset.
     - users (or items) that only exist in source dataset.
     - users (or items) that only exist in target dataset.
-
-
     """
 
     def __init__(self, config):
@@ -329,6 +341,19 @@ class CrossDomainDataset():
         self.overlap_id_field = self.overlap_dataset.overlap_id_field
 
     def calculate_user_item_from_both_domain(self):
+        """Prepare the remap dict for the users and items in both domain.
+
+        Returns:
+            source_user_remap_dict(dict): the dict for source domain whose keys are user original ids
+                                            and values are mapped ids.
+            source_item_remap_dict(dict): the dict for source domain whose keys are item original ids
+                                            and values are mapped ids.
+            target_user_remap_dict(dict): the dict for target domain whose keys are user original ids
+                                            and values are mapped ids.
+            target_item_remap_dict(dict): the dict for target domain whose keys are item original ids
+                                            and values are mapped ids.
+
+        """
         source_user_set = set(self.source_domain_dataset.inter_feat[self.source_domain_dataset.uid_field])
         target_user_set = set(self.target_domain_dataset.inter_feat[self.target_domain_dataset.uid_field])
 
@@ -458,6 +483,13 @@ class CrossDomainDataset():
         return source2target
 
     def _check_link(self, link, between='user'):
+        """ Check whether the link file is in the correct format.
+
+        Args:
+            link (str): path of input file.
+            between (str): user of item that to be linked. default to 'user'
+
+        """
         if between == 'user':
             link_warn_message = 'link data between users requires field [{}]'
             assert self.source_user_field in link, link_warn_message.format(self.source_user_field)
@@ -622,6 +654,8 @@ class CrossDomainDataset():
 
 
 class CrossDomainOverlapDataset(Dataset):
+    """:class:`CrossDomainOverlapDataset` contains the data of overlapped users or items.
+    """
 
     def __init__(self, config, num_overlap):
         self.num_overlap = num_overlap
@@ -648,6 +682,9 @@ class CrossDomainOverlapDataset(Dataset):
         self.overlap_feat.shuffle()
 
     def _load_data(self, token, dataset_path):
+        """Rewrite the function. data is constructed not loaded from files.
+
+        """
         field = 'overlap'
         ftype = FeatureType.TOKEN
         self.overlap_id_field = field
@@ -662,7 +699,7 @@ class CrossDomainOverlapDataset(Dataset):
         return df
 
     def __str__(self):
-        info = [set_color(self.dataset_name, 'pink')]
-        info.append(set_color('The number of overlap idx', 'blue') + f': {self.num_overlap}')
-        info.append(set_color('Remain Fields', 'blue') + f': {list(self.field2type)}')
+        info = [set_color(self.dataset_name, 'pink'),
+                set_color('The number of overlap idx', 'blue') + f': {self.num_overlap}',
+                set_color('Remain Fields', 'blue') + f': {list(self.field2type)}']
         return '\n'.join(info)

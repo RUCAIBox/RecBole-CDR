@@ -21,9 +21,12 @@ from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class DTCDR(CrossDomainRecommender):
-    r""" This is the simplified version of original DTCDR model.
-          To make fair comparison, This implementation only support user ratings in source and target domain.
-          Other side information (e.g., user comments, user profiles and item details) is not supported.
+    r""" This model conduct NeuMF or DMF in both domain where the embedding of overlapped users or items
+         are combined from both domain.
+
+        NOTE:This is the simplified version of original DTCDR model.
+            To make fair comparison, This implementation only support user ratings in source and target domain.
+           Other side information (e.g., user comments, user profiles and item details) is not supported.
 
     """
     input_type = InputType.POINTWISE

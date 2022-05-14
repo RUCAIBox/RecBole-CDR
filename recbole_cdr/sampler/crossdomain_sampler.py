@@ -175,10 +175,11 @@ class AbstractSampler(object):
         return torch.tensor(value_ids)
 
 
-class CrsssDomainSourceSampler(AbstractSampler):
-    """:class:`CrsssDomainSourceSampler` is used to sample negative items for source domain dataset.
+class CrossDomainSourceSampler(AbstractSampler):
+    """:class:`CrossDomainSourceSampler` is used to sample negative items for source domain dataset.
 
         Args:
+            phases (list of str): The list that contains the phases for sampling.
             dataset (Dataset): The source domain dataset, which contains data interaction in source domain.
             distribution (str, optional): Distribution of the negative entities. Defaults to 'uniform'.
         """
@@ -219,10 +220,6 @@ class CrsssDomainSourceSampler(AbstractSampler):
     def _uni_sampling(self, sample_num):
         return np.random.choice(self.item_id_list, size=sample_num, replace=True)
 
-    '''def _get_candidates_list(self):
-        candidates_list = []
-        candidates_list.extend(self.dataset.inter_feat[self.iid_field].numpy())
-        return candidates_list'''
     def _get_candidates_list(self):
         candidates_list = []
         for dataset in self.datasets:

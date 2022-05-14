@@ -4,7 +4,7 @@
 # @Email  : zhlin@ruc.edu.cn
 
 r"""
-CMF
+CLFM
 ################################################
 Reference:
     Sheng Gao et al. "Cross-Domain Recommendation via Cluster-Level Latent Factor Model." in PKDD 2013.
@@ -21,9 +21,10 @@ from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class CLFM(CrossDomainRecommender):
-    r"""
+    r"""CLFM factorize the interaction matrix from both domain
+        with domain-shared embeddings and domain-specific embeddings.
 
-        """
+    """
     input_type = InputType.POINTWISE
 
     def __init__(self, config, dataset):
@@ -112,11 +113,11 @@ class CLFM(CrossDomainRecommender):
         p_target = self.target_forward(target_user, target_item)
 
         loss_s = self.loss(p_source, source_label) + self.reg_weight * self.source_reg_loss(
-                                                                            self.source_user_embedding(source_user),
-                                                                            self.source_item_embedding(source_item))
+            self.source_user_embedding(source_user),
+            self.source_item_embedding(source_item))
         loss_t = self.loss(p_target, target_label) + self.reg_weight * self.target_reg_loss(
-                                                                            self.target_user_embedding(target_user),
-                                                                            self.target_item_embedding(target_item))
+            self.target_user_embedding(target_user),
+            self.target_item_embedding(target_item))
 
         loss = loss_s * self.alpha + loss_t * (1 - self.alpha)
 
