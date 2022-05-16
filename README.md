@@ -79,9 +79,19 @@ We carefully tune the hyper-parameters of the implemented models on three pairs 
 - Cross-domain-recommendation on [`Douban`](results/Douban.md) datasets; 
 
 
+## Contributing
+
+Please let us know if you encounter a bug or have any suggestions by [filing an issue](https://github.com/RUCAIBox/RecBole-CDR/issues).
+
+We welcome all contributions from bug fixes to new features and extensions.
+
+We expect all contributions discussed in the issue tracker and going through PRs.
+
+
 ## The Team
 
 RecBole-CDR is developed and maintained by members from [RUCAIBox](http://aibox.ruc.edu.cn/), the main developers are Zihan Lin ([@linzihan-backforward](https://github.com/linzihan-backforward)), Gaowei Zhang ([@Wicknight](https://github.com/Wicknight)) and Shanlei Mu ([@ShanleiMu](https://github.com/ShanleiMu)).
+
 
 ## Acknowledgement
 

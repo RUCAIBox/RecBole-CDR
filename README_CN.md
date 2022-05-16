@@ -29,6 +29,13 @@ RecBole-CDR 是一个基于 [RecBole](https://github.com/RUCAIBox/RecBole) 的�
 * **可扩展的跨域推荐算法库**：
     基于统一的数据结构和丰富的训练策略，我们的工具包可以便捷地开发跨域推荐算法并进行标准的比较。
 
+## 前提
+
+```
+recbole>=1.0.0
+torch>=1.7.0
+python>=3.7.0
+```
 
 ## 快速上手
 如果你从 GitHub 下载了 RecBole-CDR 的源码，你可以使用提供的脚本进行简单的使用：
@@ -72,11 +79,21 @@ python run_recbole_cdr.py --model=[model]
 - [`Douban`](results/Douban.md)数据集上的推荐结果；
 
 
-## 团队
+## 贡献
+
+如果您遇到错误或有任何建议，请通过 [Issue](https://github.com/RUCAIBox/RecBole-CDR/issues) 进行反馈
+
+我们欢迎关于修复错误、添加新特性的任何贡献。
+
+如果想贡献代码，请先在issue中提出问题，然后再提PR。
+
+
+## 开发团队
 
 RecBole-CDR由来自[RUCAIBox](http://aibox.ruc.edu.cn/)的成员开发和维护，主要的开发者是林子涵 ([@linzihan-backforward](https://github.com/linzihan-backforward)), 张高玮 ([@Wicknight](https://github.com/Wicknight)), 牟善磊 ([@ShanleiMu](https://github.com/ShanleiMu)).
 
-## 确认
+
+## 引用
 
 该代码库是基于开源代码库[RecBole](https://github.com/RUCAIBox/RecBole)开发实现的。
 
