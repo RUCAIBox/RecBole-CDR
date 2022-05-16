@@ -23,7 +23,8 @@ from recbole.utils import InputType
 
 
 class CoNet(CrossDomainRecommender):
-    r"""
+    r"""CoNet takes neural network as the basic model and uses cross connections
+        unit to improve the learning of matching functions in the current domain.
 
     """
     input_type = InputType.POINTWISE
