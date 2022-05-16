@@ -6,11 +6,14 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
+
 [中文版]
+
 
 [中文版]: README_CN.md
 
-**RecBole-CDR** is a library built upon [PyTorch](https://pytorch.org) and [RecBole](https://github.com/RUCAIBox/RecBole) for reproducing and developing cross-domain-recommendation algorithms.
+
+**RecBole-CDR** is a library built upon [RecBole](https://github.com/RUCAIBox/RecBole) for reproducing and developing cross-domain-recommendation algorithms.
 
 
 ![](asset/arch.png)
@@ -22,7 +25,7 @@
 * **Free and rich training strategies**:
     Our library provides four basic training modes for cross-domain-recommendation, and supports users to customize and combine them.
 * **Extensive cross-domain-recommendation algorithm library**:
-    Based on unified data structure and free training strategies, cross-domain-recommendation algorithms can be easily equipped and compared with others.
+    Based on unified data structure and rich training strategies, cross-domain-recommendation algorithms can be easily implemented and compared with others.
 
 ## Requirements
 
@@ -50,9 +53,7 @@ python run_recbole_cdr.py --model=[model]
 
 ## Implemented Models
 
-We list currently supported models:
-
-**Cross Domain Recommendation**:
+We list currently supported Cross-Domain-Recommendation models:
 
 * **[CMF](recbole_cdr/model/cross_domain_recommender/cmf.py)** from Singh *et al.*: [Relational Learning via Collective Matrix Factorization](https://dl.acm.org/doi/10.1145/1401890.1401969) (SIGKDD 2008).
 * **[DTCDR](recbole_cdr/model/cross_domain_recommender/dtcdr.py)** from Zhu *et al.*: [DTCDR: A Framework for Dual-Target Cross-Domain Recommendation](https://dl.acm.org/doi/10.1145/3357384.3357992) (CIKM 2019).
