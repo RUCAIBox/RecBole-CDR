@@ -70,12 +70,14 @@ We list currently supported Cross-Domain-Recommendation models:
 
 ## Result
 
-### Leaderboard
+### Dataset
 
 We collected and organized three pairs of source-target domain datasets which are commonly used in cross domain recommendation. Here we provide these datasets for reference:
 - [`Amazon`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Amazon.zip) datasets;
 - [`Book-Crossing`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Book.zip) datasets;
 - [`Douban`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Douban.zip) datasets;
+
+### Leaderboard
 
 We carefully tune the hyper-parameters of the implemented models on these datasets and release the corresponding leaderboards for reference:
 
