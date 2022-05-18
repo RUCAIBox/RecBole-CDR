@@ -114,7 +114,7 @@ Number of Overlapped Item: 2799
 |-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **CoNet**   | learning_rate=0.005<br/>mlp_hidden_size=[64,32,16,8]<br/>reg_weight=0.01                                                                                               |
 | **CLFM**    | learning_rate=0.0005<br/>share_embedding_size=32<br/>alpha=0.5<br/>reg_weight=0.001                                                                                    |
-| **DTCDR**   | learning_rate=0.0005<br/>mlp_hidden_size=[64,64]<br/>dropout_prob=0.1<br/>alpha=0.3<br/>base_model=NeuMF                                                               |
+| **DTCDR**   | learning_rate=0.0005<br/>mlp_hidden_size=[64,64]<br/>dropout_prob=0.3<br/>alpha=0.3<br/>base_model=NeuMF                                                               |
 | **DeepAPF** | learning_rate=0.001                                                                                                                                                    |
 | **BiTGCF**  | learning_rate=0.0005<br/>n_layers=2<br/>concat_way=concat<br/>lambda_source=0.8<br/>lambda_target=0.8<br/>drop_rate=0.1<br/>reg_weight=0.001                           |
 | **CMF**     | learning_rate=0.0005<br/>lambda=0.7<br/>gamma=0.1<br/>alpha=0.3                                                                                                        |
