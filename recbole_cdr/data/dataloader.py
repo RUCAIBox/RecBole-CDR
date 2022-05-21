@@ -202,6 +202,7 @@ class CrossDomainFullSortEvalDataLoader(FullSortEvalDataLoader):
     def __init__(self, config, dataset, source_dataset, sampler, shuffle=False):
         self.uid_field = source_dataset.uid_field
         self.iid_field = source_dataset.iid_field
+        self.is_sequential = False
 
         user_num = dataset.num_total_user
         self.overlap_item_num = dataset.num_overlap_item
