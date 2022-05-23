@@ -61,6 +61,13 @@ class TestRecommender(unittest.TestCase):
         }
         quick_test(config_dict)
 
+    def test_natr(self):
+        config_dict = {
+            'model': 'NATR',
+            'train_epochs': ["SOURCE:1", "TARGET:1"],
+        }
+        quick_test(config_dict)
+
 
 if __name__ == '__main__':
     unittest.main()
