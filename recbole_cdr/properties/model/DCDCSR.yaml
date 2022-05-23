@@ -1,0 +1,6 @@
+latent_factor_model: BPR
+embedding_size: 64
+mlp_hidden_size: [128]
+k: 10
+map_batch_size: 1024
+train_epochs: ["SOURCE:300","TARGET:300","BOTH:50","TARGET:300"]
