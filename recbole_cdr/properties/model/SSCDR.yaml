@@ -1,0 +1,6 @@
+embedding_size: 64
+lambda: 0.25
+margin: 1
+mlp_hidden_size: [128]
+train_epochs: ["SOURCE:300","TARGET:300","OVERLAP:300"]
+overlap_batch_size: 100
