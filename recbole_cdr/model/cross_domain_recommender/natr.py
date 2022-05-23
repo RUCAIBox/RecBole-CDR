@@ -4,7 +4,7 @@
 # @Email  : slmu@ruc.edu.cn
 
 r"""
-DCDCSR
+NATR
 ################################################
 Reference:
     Chen Gao et al. "Cross-domain Recommendation Without Sharing User-relevant Data" in WWW 2019.
