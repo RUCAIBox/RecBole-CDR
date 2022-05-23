@@ -61,10 +61,18 @@ class TestRecommender(unittest.TestCase):
         }
         quick_test(config_dict)
 
+
     def test_dcdcsr(self):
         config_dict = {
             'model': 'DCDCSR',
             'train_epochs': ["SOURCE:1", "TARGET:1", "BOTH:1", "TARGET:1"],
+        }
+
+    def test_natr(self):
+        config_dict = {
+            'model': 'NATR',
+            'train_epochs': ["SOURCE:1", "TARGET:1"],
+
         }
         quick_test(config_dict)
 
