@@ -102,11 +102,19 @@ class DCDCSR(CrossDomainRecommender):
             self.build_benchmark_embedding()
         if self.phase == 'TARGET' and self.phase2count[self.phase] == 2:
             if self.mode == 'overlap_users':
+                target_user_embedding, mean_, max_ = \
+                    self.maxmin_normalize(self.target_user_embedding.weight[:self.target_num_users])
                 self.affine_embedding = self.mapping_mlp_layers(
-                    self.target_user_embedding.weight).detach()
+                    target_user_embedding)
+                self.affine_embedding = self.affine_embedding * (max_ - mean_) + mean_
+                self.affine_embedding = self.affine_embedding.detach()
             elif self.mode == 'overlap_items':
+                target_item_embedding, mean_, max_ = \
+                    self.maxmin_normalize(self.target_item_embedding.weight[:self.target_num_items])
                 self.affine_embedding = self.mapping_mlp_layers(
-                    self.target_item_embedding.weight[:self.target_num_items]).detach()
+                    target_item_embedding)
+                self.affine_embedding = self.affine_embedding * (max_ - mean_) + mean_
+                self.affine_embedding = self.affine_embedding.detach()
 
     def calculate_rec_loss(self, interaction, user_embeds, item_embeds,
                            user_field, item_field, neg_item_field, label_field):
@@ -154,26 +162,27 @@ class DCDCSR(CrossDomainRecommender):
         if self.mode == 'overlap_users':
             self.build_unit_benchmark_embedding(self.total_num_users, self.overlapped_num_users,
                                                 self.source_user2pop, self.target_user2pop,
-                                                self.source_user_embedding.weight, self.target_user_embedding.weight)
+                                                self.source_user_embedding.weight[:self.overlapped_num_users], self.target_user_embedding.weight)
         elif self.mode == 'overlap_items':
             self.build_unit_benchmark_embedding(self.total_num_items, self.overlapped_num_items,
                                                 self.source_item2pop, self.target_item2pop,
-                                                self.source_item_embedding.weight, self.target_item_embedding.weight)
+                                                self.source_item_embedding.weight[:self.overlapped_num_items], self.target_item_embedding.weight)
+
 
     def maxmin_normalize(self, embed_weight):
         min_ = torch.amin(embed_weight, dim=1, keepdim=True)
         max_ = torch.amax(embed_weight, dim=1, keepdim=True)
         mean_ = (max_ + min_) / 2
         normal_mat = (embed_weight - mean_) / (max_ - mean_)
-        return normal_mat
+        return normal_mat, mean_, max_
 
     def calculate_unit_map_loss(self, target_num_units, target_unit_embeddings):
         sampled_index = np.random.randint(0, target_num_units, self.map_batch_size)
         item_embeddings = target_unit_embeddings[sampled_index]
+        item_embeddings, _, _ = self.maxmin_normalize(item_embeddings)
         item_embeddings = self.mapping_mlp_layers(item_embeddings)
         benchmark_embeddings = self.benchmark_embedding[sampled_index]
-        item_embeddings = self.maxmin_normalize(item_embeddings)
-        benchmark_embeddings = self.maxmin_normalize(benchmark_embeddings)
+        benchmark_embeddings, _, _ = self.maxmin_normalize(benchmark_embeddings)
         loss = self.map_loss(item_embeddings, benchmark_embeddings)
         return loss
 
