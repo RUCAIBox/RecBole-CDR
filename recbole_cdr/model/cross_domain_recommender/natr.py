@@ -41,7 +41,8 @@ class NATR(CrossDomainRecommender):
         self.phase = None
 
         # load parameters info
-        self.embedding_size = config['embedding_size']
+        self.source_embedding_size = config['source_embedding_size']
+        self.target_embedding_size = config['target_embedding_size']
         self.reg_weight = config['reg_weight']
         self.max_inter_length = config['max_inter_length']
 
@@ -54,18 +55,18 @@ class NATR(CrossDomainRecommender):
             self.history_item_matrix, self.history_lens, self.mask_mat = self.get_history_item_info(dataset)
 
         # define layers and loss
-        self.source_user_embedding = nn.Embedding(self.total_num_users, self.embedding_size)
-        self.source_item_embedding = nn.Embedding(self.total_num_items, self.embedding_size)
-        self.target_user_embedding = nn.Embedding(self.total_num_users, self.embedding_size)
-        self.target_item_embedding = nn.Embedding(self.total_num_items, self.embedding_size)
+        self.source_user_embedding = nn.Embedding(self.total_num_users, self.source_embedding_size)
+        self.source_item_embedding = nn.Embedding(self.total_num_items, self.source_embedding_size)
+        self.target_user_embedding = nn.Embedding(self.total_num_users, self.target_embedding_size)
+        self.target_item_embedding = nn.Embedding(self.total_num_items, self.target_embedding_size)
         with torch.no_grad():
             self.source_user_embedding.weight[self.overlapped_num_users: self.target_num_users].fill_(0)
             self.source_item_embedding.weight[self.overlapped_num_items: self.target_num_items].fill_(0)
             self.target_user_embedding.weight[self.target_num_users:].fill_(0)
             self.target_item_embedding.weight[self.target_num_items:].fill_(0)
-        self.transfer_layer = nn.Linear(self.embedding_size, self.embedding_size)
-        self.unit_attention_layer = nn.Linear(self.embedding_size, 1)
-        self.domain_attention_layer = nn.Linear(self.embedding_size, 1)
+        self.transfer_layer = nn.Linear(self.source_embedding_size, self.target_embedding_size)
+        self.unit_attention_layer = nn.Linear(self.target_embedding_size, 1)
+        self.domain_attention_layer = nn.Linear(self.target_embedding_size, 1)
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)
@@ -121,7 +122,7 @@ class NATR(CrossDomainRecommender):
             batch_mask_mat = self.mask_mat[user]
             batch_mask_mat = torch.where(batch_mask_mat.bool(), 0., -10000.0)
             history_items = self.history_item_matrix[user]
-            history_items_e = self.source_item_embedding(history_items)  # (batch, n_history, embedding_size)
+            history_items_e = self.source_item_embedding(history_items)  # (batch, n_history, source_embedding_size)
             history_items_e = self.transfer_layer(history_items_e)
             unit_attention_score = user_e.unsqueeze(1).expand_as(history_items_e) * history_items_e  # (batch, n_history, embedding_size)
             unit_attention_score = self.unit_attention_layer(self.relu(unit_attention_score)).squeeze(2)
@@ -130,8 +131,10 @@ class NATR(CrossDomainRecommender):
             unit_attention_score = unit_attention_score.unsqueeze(1)    # (batch, 1, n_history)
             su = torch.bmm(unit_attention_score, history_items_e).squeeze(1)    # (batch, embedding_size)
             pu, qi = user_e, item_e
-            beta_s = self.domain_attention_layer(self.relu(su * qi))
-            beta_p = self.domain_attention_layer(self.relu(pu * qi))
+            b_s = self.domain_attention_layer(self.relu(su * qi))
+            b_p = self.domain_attention_layer(self.relu(pu * qi))
+            beta_s = torch.exp(b_s) / (torch.exp(b_s) + torch.exp(b_p))
+            beta_p = 1 - beta_s
             zu = beta_s * su + beta_p * pu  # (batch, embedding_size)
             score = self.sigmoid(torch.mul(zu, qi).sum(dim=1))
             return score
@@ -148,8 +151,10 @@ class NATR(CrossDomainRecommender):
             unit_attention_score = unit_attention_score.unsqueeze(1)    # (batch, 1, n_history)
             su = torch.bmm(unit_attention_score, history_users_e).squeeze(1)    # (batch, embedding_size)
             pu, qi = item_e, user_e
-            beta_s = self.domain_attention_layer(self.relu(su * qi))
-            beta_p = self.domain_attention_layer(self.relu(pu * qi))
+            b_s = self.domain_attention_layer(self.relu(su * qi))
+            b_p = self.domain_attention_layer(self.relu(pu * qi))
+            beta_s = torch.exp(b_s) / (torch.exp(b_s) + torch.exp(b_p))
+            beta_p = 1 - beta_s
             zu = beta_s * su + beta_p * pu  # (batch, embedding_size)
             score = self.sigmoid(torch.mul(zu, qi).sum(dim=1))
             return score
@@ -178,7 +183,7 @@ class NATR(CrossDomainRecommender):
         if self.phase == 'SOURCE':
             user = interaction[self.SOURCE_USER_ID]
             item = interaction[self.SOURCE_ITEM_ID]
-            score = self.phase2_forward(user, item)
+            score = self.phase1_forward(user, item)
         else:
             user = interaction[self.TARGET_USER_ID]
             item = interaction[self.TARGET_ITEM_ID]
