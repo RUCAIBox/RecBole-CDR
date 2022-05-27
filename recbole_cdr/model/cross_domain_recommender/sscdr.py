@@ -135,9 +135,9 @@ class SSCDR(CrossDomainRecommender):
         source_pos_item = interaction[self.SOURCE_ITEM_ID]
         source_neg_item = interaction[self.SOURCE_NEG_ITEM_ID]
 
-        source_user_e = self.target_user_embedding(source_user)
-        source_pos_item_e = self.target_item_embedding(source_pos_item)
-        source_neg_item_e = self.target_item_embedding(source_neg_item)
+        source_user_e = self.source_user_embedding(source_user)
+        source_pos_item_e = self.source_item_embedding(source_pos_item)
+        source_neg_item_e = self.source_item_embedding(source_neg_item)
 
         loss_t = self.rec_loss(self.embedding_normalize(source_user_e),
                                self.embedding_normalize(source_pos_item_e),
