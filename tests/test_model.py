@@ -61,6 +61,13 @@ class TestRecommender(unittest.TestCase):
         }
         quick_test(config_dict)
 
+    def test_sscdr(self):
+        config_dict = {
+            'model': 'SSCDR',
+            'train_epochs': ["SOURCE:1", "TARGET:1", "BOTH:1"],
+        }
+        quick_test(config_dict)
+
 
     def test_dcdcsr(self):
         config_dict = {
