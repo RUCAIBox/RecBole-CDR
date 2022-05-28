@@ -22,7 +22,8 @@ from recbole_cdr.model.crossdomain_recommender import CrossDomainRecommender
 
 
 class EMCDR(CrossDomainRecommender):
-    r"""
+    r"""EMCDR learns an mapping function from source latent space
+        to target latent space.
 
     """
 
