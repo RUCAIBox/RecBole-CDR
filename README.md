@@ -13,19 +13,19 @@
 [中文版]: README_CN.md
 
 
-**RecBole-CDR** is a library built upon [RecBole](https://github.com/RUCAIBox/RecBole) for reproducing and developing cross-domain-recommendation algorithms.
+**RecBole-CDR** is a library built upon [RecBole](https://github.com/RUCAIBox/RecBole) for reproducing and developing cross-domain recommendation algorithms.
 
 
 ![](asset/arch.png)
 
 ## Highlights
 
-* **Unified data structure for cross-domain-recommendation**:
-    Our library designs a unified data structure for cross domain recommendation, including source domain data, target domain data and overlapping data.
-* **Free and rich training strategies**:
-    Our library provides four basic training modes for cross-domain-recommendation, and supports users to customize and combine them.
-* **Extensive cross-domain-recommendation algorithm library**:
-    Based on unified data structure and rich training strategies, cross-domain-recommendation algorithms can be easily implemented and compared with others.
+* **Automatic and compatible data processing for cross-domain recommendation**:
+    Our library designs a unified data structure for cross-domain recommendation, which inherits all the data pre-processing strategies in RecBole. The overlapped data in different domains can be matched automatically.
+* **Flexible and customized model training strategies**:
+    Our library provides four basic training modes for cross-domain recommendation, which can be combined arbitrarily by users. It is also easy to customize training strategy in original way.
+* **Extensive cross-domain recommendation algorithms**:
+    Based on unified data structure and flexible training strategies, several cross-domain recommendation algorithms are implemented and compared with others fairly.
 
 ## Requirements
 
@@ -53,7 +53,7 @@ python run_recbole_cdr.py --model=[model]
 
 ## Implemented Models
 
-We list currently supported Cross-Domain-Recommendation models:
+We list currently supported Cross-Domain Recommendation models:
 
 * **[CMF](recbole_cdr/model/cross_domain_recommender/cmf.py)** from Singh *et al.*: [Relational Learning via Collective Matrix Factorization](https://dl.acm.org/doi/10.1145/1401890.1401969) (SIGKDD 2008).
 * **[DTCDR](recbole_cdr/model/cross_domain_recommender/dtcdr.py)** from Zhu *et al.*: [DTCDR: A Framework for Dual-Target Cross-Domain Recommendation](https://dl.acm.org/doi/10.1145/3357384.3357992) (CIKM 2019).
@@ -72,7 +72,7 @@ We list currently supported Cross-Domain-Recommendation models:
 
 ### Dataset
 
-We collected and organized three pairs of source-target domain datasets which are commonly used in cross domain recommendation. Here we provide these datasets for reference:
+We collected and organized three pairs of datasets with one source domain and one target domain which are commonly used in cross-domain recommendation. Here we provide these datasets for reference:
 - [`Amazon`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Amazon.zip) datasets;
 - [`Book-Crossing`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Book.zip) datasets;
 - [`Douban`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Douban.zip) datasets;
@@ -81,7 +81,7 @@ We collected and organized three pairs of source-target domain datasets which ar
 
 We carefully tune the hyper-parameters of the implemented models on these datasets and release the corresponding leaderboards for reference:
 
-- Cross-domain-recommendation on [`Amazon`](results/Amazon-Books.md) datasets; 
+- Cross-domain-recommendation on [`Amazon`](results/Amazon.md) datasets; 
 - Cross-domain-recommendation on [`Book-Crossing`](results/Book-Crossing.md) datasets; 
 - Cross-domain-recommendation on [`Douban`](results/Douban.md) datasets; 
 

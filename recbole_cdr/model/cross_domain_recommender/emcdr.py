@@ -31,7 +31,7 @@ class EMCDR(CrossDomainRecommender):
         super(EMCDR, self).__init__(config, dataset)
 
         assert self.overlapped_num_items == 1 or self.overlapped_num_users == 1, \
-            "CoNet model only support user overlapped or item overlapped dataset! "
+            "EMCDR model only support user overlapped or item overlapped dataset! "
         if self.overlapped_num_users > 1:
             self.mode = 'overlap_users'
         elif self.overlapped_num_items > 1:
