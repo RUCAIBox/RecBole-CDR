@@ -23,7 +23,7 @@ class CrossDomainTrainer(Trainer):
 
     def __init__(self, config, model):
         super(CrossDomainTrainer, self).__init__(config, model)
-        self.train_scheme = config['train_modes']
+        self.train_modes = config['train_modes']
         self.train_epochs = config['epoch_num']
         self.split_valid_flag = config['source_split']
 
@@ -56,9 +56,9 @@ class CrossDomainTrainer(Trainer):
             Returns:
                     (float, dict): best valid score and best valid result. If valid_data is None, it returns (-1, None)
         """
-        for phase in range(len(self.train_scheme)):
+        for phase in range(len(self.train_modes)):
             self._reinit(phase)
-            scheme = self.train_scheme[phase]
+            scheme = self.train_modes[phase]
             self.logger.info("Start training with {} mode".format(scheme))
             state = train_mode2state[scheme]
             train_data.set_mode(state)
@@ -81,7 +81,7 @@ class DCDCSRTrainer(Trainer):
 
     def __init__(self, config, model):
         super(DCDCSRTrainer, self).__init__(config, model)
-        self.train_scheme = config['train_modes']
+        self.train_modes = config['train_modes']
         self.train_epochs = config['epoch_num']
         self.split_valid_flag = config['source_split']
 
@@ -114,9 +114,9 @@ class DCDCSRTrainer(Trainer):
             Returns:
                     (float, dict): best valid score and best valid result. If valid_data is None, it returns (-1, None)
         """
-        for phase in range(len(self.train_scheme)):
+        for phase in range(len(self.train_modes)):
             self._reinit(phase)
-            scheme = self.train_scheme[phase]
+            scheme = self.train_modes[phase]
             self.logger.info("Start training with {} mode".format(scheme))
             state = train_mode2state[scheme]
             train_data.set_mode(state)

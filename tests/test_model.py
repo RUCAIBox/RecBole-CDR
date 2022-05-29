@@ -74,6 +74,7 @@ class TestRecommender(unittest.TestCase):
             'model': 'DCDCSR',
             'train_epochs': ["SOURCE:1", "TARGET:1", "BOTH:1", "TARGET:1"],
         }
+        quick_test(config_dict)
 
     def test_natr(self):
         config_dict = {
