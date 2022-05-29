@@ -42,4 +42,5 @@ jobs:
     # Use "python -m pytest" instead of "pytest" to fix imports
     - name: Test model
       run: |
+        set PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
         python -m pytest -v tests/test_model.py
