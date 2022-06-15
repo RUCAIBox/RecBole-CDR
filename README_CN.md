@@ -68,22 +68,12 @@ python run_recbole_cdr.py --model=[model]
 * **[DCDCSR](recbole_cdr/model/cross_domain_recommender/dcdcsr.py)** from Zhu *et al.*: [A Deep Framework for Cross-Domain and Cross-System Recommendations](https://arxiv.org/abs/2009.06215) (IJCAI 2018).
 
 
-## 结果
-
-### 数据集
+## 数据集
 
 我们搜集并整理了在跨域推荐中常用的三对源域-目标域数据集。我们在这里提供这些数据集以供参考：
 - [`Amazon`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Amazon.zip) 数据集;
 - [`Book-Crossing`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Book.zip) 数据集;
 - [`Douban`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Douban.zip) 数据集;
-
-### 排行榜
-
-我们对实现的模型在这些数据集上进行了仔细的调参，并提供我们的结果以供参考：
-
-- [`Amazon`](results/Amazon.md)数据集上的跨域推荐结果；
-- [`Book-Crossing`](results/Book-Crossing.md)数据集上的推荐结果；
-- [`Douban`](results/Douban.md)数据集上的推荐结果；
 
 
 ## 贡献
