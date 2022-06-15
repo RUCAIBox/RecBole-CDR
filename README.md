@@ -67,14 +67,21 @@ We list currently supported Cross-Domain Recommendation models:
 * **[DCDCSR](recbole_cdr/model/cross_domain_recommender/dcdcsr.py)** from Zhu *et al.*: [A Deep Framework for Cross-Domain and Cross-System Recommendations](https://arxiv.org/abs/2009.06215) (IJCAI 2018).
 
 
-
-## Dataset
+## Result
+### Dataset
 
 We collected and organized three pairs of datasets with one source domain and one target domain which are commonly used in cross-domain recommendation. Here we provide these datasets for reference:
 - [`Amazon`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Amazon.zip) datasets;
 - [`Book-Crossing`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Book.zip) datasets;
 - [`Douban`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Douban.zip) datasets;
 
+### Hyper-parameters
+
+We carefully tune the hyper-parameters of the implemented models on these datasets and we provide these hyper-parameters here for reference:
+
+- Cross-domain-recommendation on [`Amazon`](results/Amazon.md) datasets; 
+- Cross-domain-recommendation on [`Book-Crossing`](results/Book-Crossing.md) datasets; 
+- Cross-domain-recommendation on [`Douban`](results/Douban.md) datasets; 
 
 ## Contributing
 
