@@ -69,7 +69,6 @@ python run_recbole_cdr.py --model=[model]
 
 
 ## 结果
-
 ### 数据集
 
 我们搜集并整理了在跨域推荐中常用的三对源域-目标域数据集。我们在这里提供这些数据集以供参考：
@@ -77,7 +76,7 @@ python run_recbole_cdr.py --model=[model]
 - [`Book-Crossing`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Book.zip) 数据集;
 - [`Douban`](https://recbole.s3-accelerate.amazonaws.com/CrossDomain/Douban.zip) 数据集;
 
-### 排行榜
+### 超参数
 
 我们对实现的模型在这些数据集上进行了仔细的调参，并提供我们的结果以供参考：
 
