@@ -32,7 +32,7 @@ RecBole-CDR 是一个基于 [RecBole](https://github.com/RUCAIBox/RecBole) 的�
 ## 前提
 
 ```
-recbole>=1.0.0
+recbole==1.0.0
 torch>=1.7.0
 python>=3.7.0
 ```
