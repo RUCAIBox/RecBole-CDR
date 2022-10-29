@@ -1,1 +1,1 @@
-recbole==1.0.0
+recbole==1.0.1
