@@ -119,7 +119,7 @@ class CrossDomainSingleDataset(Dataset):
             if self.user_feat is not None and field_name in self.user_feat.columns:
                 self.user_feat[field_name] = self.user_feat[field_name].map(lambda x: map_dict.get(x, x))
             if self.item_feat is not None and field_name in self.item_feat.columns:
-                self.user_feat[field_name] = self.item_feat[field_name].map(lambda x: map_dict.get(x, x))
+                self.item_feat[field_name] = self.item_feat[field_name].map(lambda x: map_dict.get(x, x))
 
     def data_process_after_remap(self):
         """Data preprocessing, including:
