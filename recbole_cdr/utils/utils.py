@@ -57,3 +57,10 @@ def get_trainer(model_type, model_name):
             return getattr(importlib.import_module('recbole_cdr.trainer'), 'CrossDomainTrainer')
         else:
             return getattr(importlib.import_module('recbole.trainer'), 'Trainer')
+        
+
+def get_keys_from_chainmap_by_order(map_dict):
+    merged_dict = dict()
+    for dict_item in map_dict.maps:
+        merged_dict.update(dict_item)
+    return list(merged_dict.keys())        
