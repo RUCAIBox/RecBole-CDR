@@ -145,12 +145,12 @@ class BiTGCF(CrossDomainRecommender):
 
         source_user_laplace = self.source_user_degree_count
         target_user_laplace = self.target_user_degree_count
-        user_laplace = source_user_laplace + target_user_laplace
+        user_laplace = source_user_laplace + target_user_laplace + 1e-7
         source_user_embeddings_lap = (source_user_laplace * source_user_embeddings + target_user_laplace * target_user_embeddings) / user_laplace
         target_user_embeddings_lap = source_user_embeddings_lap
         source_item_laplace = self.source_item_degree_count
         target_item_laplace = self.target_item_degree_count
-        item_laplace = source_item_laplace + target_item_laplace
+        item_laplace = source_item_laplace + target_item_laplace + 1e-7
         source_item_embeddings_lap = (source_item_laplace * source_item_embeddings + target_item_laplace * target_item_embeddings) / item_laplace
         target_item_embeddings_lap = source_item_embeddings_lap
 

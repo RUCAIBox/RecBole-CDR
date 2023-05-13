@@ -56,6 +56,7 @@ class CDRConfig(Config):
             config_file_list (list of str): the external config file, it allows multiple config files, default is None.
             config_dict (dict): the external parameter dictionaries, default is None.
         """
+        self.compatibility_settings()
         self._init_parameters_category()
         self.parameters['Dataset'] += ['source_domain', 'target_domain']
         self.yaml_loader = self._build_yaml_loader()
@@ -283,3 +284,14 @@ class CDRConfig(Config):
         for key in other_config:
             new_config_obj.final_config_dict[key] = other_config[key]
         return new_config_obj
+    
+    def compatibility_settings(self):
+        import numpy as np
+        np.bool = np.bool_
+        np.int = np.int_
+        np.float = np.float_
+        np.complex = np.complex_
+        np.object = np.object_
+        np.str = np.str_
+        np.long = np.int_
+        np.unicode = np.unicode_
