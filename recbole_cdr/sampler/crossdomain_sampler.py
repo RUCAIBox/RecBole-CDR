@@ -195,8 +195,8 @@ class CrossDomainSourceSampler(AbstractSampler):
         self.uid_field = self.dataset.uid_field
         self.iid_field = self.dataset.iid_field
 
-        self.overlapped_item_num = dataset.num_overlap_item + 1  # for [pad]
-        self.overlapped_user_num = dataset.num_overlap_user + 1
+        self.overlapped_item_num = dataset.num_overlap_item
+        self.overlapped_user_num = dataset.num_overlap_user
 
         self.source_only_item_num = dataset.num_source_only_item
         self.source_only_user_num = dataset.num_source_only_user

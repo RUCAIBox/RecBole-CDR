@@ -16,3 +16,4 @@ saved/
 *.egg-info/
 docs/build/
 wandb/*
+.DS_Store
