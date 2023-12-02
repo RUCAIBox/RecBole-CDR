@@ -24,4 +24,4 @@ module load python
 
 source /home/dmeher/llm_env/bin/activate
 
-python /home/dmeher/Recbole-CDR-LLMasRec/run_recbole_cdr.py --config_files=/home/dmeher/Recbole-CDR-LLMasRec/config_files/ranking_config.yaml
+python /home/dmeher/Recbole-CDR-LLMasRec/run_recbole_cdr.py --config_files=/home/dmeher/Recbole-CDR-LLMasRec/config_files/ranking_config.yaml --model=EMCDR --learning_rate=0.001 --mapping_function=non_linear --mlp_hidden_size=[128] --overlap_batch_size=300 --reg_weight=0.01 --latent_factor_model=BPR --loss_type=BPR
