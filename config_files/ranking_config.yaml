@@ -1,0 +1,60 @@
+seed: 2022
+field_separator: "\t"
+source_domain:
+  dataset: "/home/dmeher/datasets/AmazonBooks/AmazonBooks"
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  RATING_FIELD: rating
+  TIME_FIELD: timestamp
+  NEG_PREFIX: neg_
+  LABEL_FIELD: label
+  load_col:
+    inter: [user_id, item_id, rating]
+  user_inter_num_interval: "[10,inf)"
+  item_inter_num_interval: "[10,inf)"
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
+
+target_domain:
+  dataset: "/home/dmeher/datasets/AmazonMov/AmazonMov"
+  USER_ID_FIELD: user_id
+  ITEM_ID_FIELD: item_id
+  RATING_FIELD: rating
+  TIME_FIELD: timestamp
+  NEG_PREFIX: neg_
+  LABEL_FIELD: label
+  load_col:
+    inter: [user_id, item_id, rating]
+  user_inter_num_interval: "[10,inf)"
+  item_inter_num_interval: "[10,inf)"
+  val_interval:
+    rating: "[3,inf)"
+  drop_filter_field: True
+
+epochs: 1 
+train_batch_size: 4096
+eval_batch_size: 409600
+valid_metric: NDCG@10
+embedding_size: 64
+
+eval_args:
+        split: {'LS':'valid_and_test'}
+        mode: 'full'
+
+
+
+#epochs: 1
+#train_batch_size: 4096
+#eval_batch_size: 409600
+#valid_metric: NDCG@10
+#embedding_size: 64
+#metrics: ["Recall","MRR","NDCG","Hit","Precision"]  # (list or str) Evaluation metrics.
+#topk: [10]                      # (list or int or None) The value of k for topk evaluation metrics.
+#valid_metric: MRR@10            # (str) The evaluation metric for early stopping. 
+#valid_metric_bigger: True 
+#metric_decimal_place: 4
+#eval_args:
+#  split: {'LS':'valid_and_test'}
+#  group_by: user
+#  mode: full
