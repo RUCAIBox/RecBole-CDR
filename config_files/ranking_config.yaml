@@ -1,5 +1,5 @@
 seed: 2022
-field_separator: "\t"
+fiield_separator: "\t"
 source_domain:
   dataset: "/home/dmeher/datasets/AmazonBooks/AmazonBooks"
   USER_ID_FIELD: user_id
@@ -40,7 +40,8 @@ embedding_size: 64
 
 eval_args:
         split: {'LS':'valid_and_test'}
-        mode: 'full'
+        mode: 'uni100'
+        #mode: 'full'
 
 
 
